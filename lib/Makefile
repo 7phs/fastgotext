@@ -7,49 +7,51 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 #
 
+BASE = fasttext/
+BUILD = build/
+
 CXX = c++
 CXXFLAGS = -pthread -std=c++0x
-OBJS = args.o dictionary.o productquantizer.o matrix.o qmatrix.o vector.o model.o utils.o fasttext.o wrapper.o
+OBJS = $(BUILD)args.o $(BUILD)dictionary.o $(BUILD)productquantizer.o $(BUILD)matrix.o $(BUILD)qmatrix.o $(BUILD)vector.o $(BUILD)model.o $(BUILD)utils.o $(BUILD)fasttext.o $(BUILD)wrapper.o
 INCLUDES = -I.
-BASE = fasttext/
 
 opt: CXXFLAGS += -O3 -funroll-loops
 opt: build
 
-args.o: $(BASE)src/args.cc $(BASE)src/args.h
-	$(CXX) $(CXXFLAGS) -c $(BASE)src/args.cc
+$(BUILD)args.o: $(BASE)src/args.cc $(BASE)src/args.h
+	$(CXX) $(CXXFLAGS) -c $(BASE)src/args.cc -o $(BUILD)args.o
 
-dictionary.o: $(BASE)src/dictionary.cc $(BASE)src/dictionary.h $(BASE)src/args.h
-	$(CXX) $(CXXFLAGS) -c $(BASE)src/dictionary.cc
+$(BUILD)dictionary.o: $(BASE)src/dictionary.cc $(BASE)src/dictionary.h $(BASE)src/args.h
+	$(CXX) $(CXXFLAGS) -c $(BASE)src/dictionary.cc -o $(BUILD)dictionary.o
 
-productquantizer.o: $(BASE)src/productquantizer.cc $(BASE)src/productquantizer.h $(BASE)src/utils.h
-	$(CXX) $(CXXFLAGS) -c $(BASE)src/productquantizer.cc
+$(BUILD)productquantizer.o: $(BASE)src/productquantizer.cc $(BASE)src/productquantizer.h $(BASE)src/utils.h
+	$(CXX) $(CXXFLAGS) -c $(BASE)src/productquantizer.cc -o $(BUILD)productquantizer.o
 
-matrix.o: $(BASE)src/matrix.cc $(BASE)src/matrix.h $(BASE)src/utils.h
-	$(CXX) $(CXXFLAGS) -c $(BASE)src/matrix.cc
+$(BUILD)matrix.o: $(BASE)src/matrix.cc $(BASE)src/matrix.h $(BASE)src/utils.h
+	$(CXX) $(CXXFLAGS) -c $(BASE)src/matrix.cc -o $(BUILD)matrix.o
 
-qmatrix.o: $(BASE)src/qmatrix.cc $(BASE)src/qmatrix.h $(BASE)src/utils.h
-	$(CXX) $(CXXFLAGS) -c $(BASE)src/qmatrix.cc
+$(BUILD)qmatrix.o: $(BASE)src/qmatrix.cc $(BASE)src/qmatrix.h $(BASE)src/utils.h
+	$(CXX) $(CXXFLAGS) -c $(BASE)src/qmatrix.cc -o $(BUILD)qmatrix.o
 
-vector.o: $(BASE)src/vector.cc $(BASE)src/vector.h $(BASE)src/utils.h
-	$(CXX) $(CXXFLAGS) -c $(BASE)src/vector.cc
+$(BUILD)vector.o: $(BASE)src/vector.cc $(BASE)src/vector.h $(BASE)src/utils.h
+	$(CXX) $(CXXFLAGS) -c $(BASE)src/vector.cc -o $(BUILD)vector.o
 
-model.o: $(BASE)src/model.cc $(BASE)src/model.h $(BASE)src/args.h
-	$(CXX) $(CXXFLAGS) -c $(BASE)src/model.cc
+$(BUILD)model.o: $(BASE)src/model.cc $(BASE)src/model.h $(BASE)src/args.h
+	$(CXX) $(CXXFLAGS) -c $(BASE)src/model.cc -o $(BUILD)model.o
 
-utils.o: $(BASE)src/utils.cc $(BASE)src/utils.h
-	$(CXX) $(CXXFLAGS) -c $(BASE)src/utils.cc
+$(BUILD)utils.o: $(BASE)src/utils.cc $(BASE)src/utils.h
+	$(CXX) $(CXXFLAGS) -c $(BASE)src/utils.cc -o $(BUILD)utils.o
 
-fasttext.o: $(BASE)src/fasttext.cc $(BASE)src/*.h
-	$(CXX) $(CXXFLAGS) -c $(BASE)src/fasttext.cc
+$(BUILD)fasttext.o: $(BASE)src/fasttext.cc $(BASE)src/*.h
+	$(CXX) $(CXXFLAGS) -c $(BASE)src/fasttext.cc -o $(BUILD)fasttext.o
 
-wrapper.o: src/wrapper.cc
-	$(CXX) $(CXXFLAGS) -c src/wrapper.cc
+$(BUILD)wrapper.o: src/wrapper.cc
+	$(CXX) $(CXXFLAGS) -c src/wrapper.cc -o $(BUILD)wrapper.o
 
 libfasttext.a: $(OBJS)
 	$(AR) rcs libfasttext.a $(OBJS)
 
 clean:
-	rm -rf *.o libfasttext.a
+	rm -rf $(BUILD)*.o libfasttext.a
 
 build: libfasttext.a

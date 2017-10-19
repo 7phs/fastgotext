@@ -1,6 +1,7 @@
-package fast_go_text
+package fastgotext
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -55,4 +56,28 @@ func TestFastText_LoadVector(t *testing.T) {
 	if err := model.LoadVectors("test/model.vec"); err != nil {
 		t.Error("failed to load fasttext vector:", err)
 	}
+}
+
+func TestFastText_GetDictionary(t *testing.T) {
+	model := FastText()
+	if model == nil {
+		t.Error("failed to create fast text vector")
+		return
+	}
+	defer model.Free()
+
+	if err := model.LoadModel("test/model.bin"); err != nil {
+		t.Error("failed to load fasttext model:", err)
+		return
+	}
+
+	if err := model.LoadVectors("test/model.vec"); err != nil {
+		t.Error("failed to load fasttext vector:", err)
+		return
+	}
+
+	dict := model.GetDictionary()
+	wordIndex := dict.Find("first")
+
+	fmt.Println("wordIndex:", wordIndex)
 }
