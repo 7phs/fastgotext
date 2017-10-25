@@ -1,7 +1,6 @@
 package fastgotext
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -21,7 +20,10 @@ func TestEmd(t *testing.T) {
 	matrix := CastFloatMatrix(distanceMatrix)
 	defer FreeFloatMatrix(matrix)
 
-	result := Emd(docBow1, docBow2, uint(len(distanceMatrix)), matrix)
+	exist := Emd(docBow1, docBow2, uint(len(distanceMatrix)), matrix)
+	expected := float32(12.604165)
 
-	fmt.Println(result)
+	if exist != expected {
+		t.Error("failed to calc emd. Got", exist, ", but expected is", expected)
+	}
 }

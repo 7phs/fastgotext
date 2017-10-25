@@ -9,7 +9,6 @@ import "C"
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"unsafe"
 )
 
@@ -24,8 +23,6 @@ func bowToWordsWeights(docBow []float32) (C.int, unsafe.Pointer, unsafe.Pointer)
 		if wordWeight > 0. {
 			binary.Write(words, binary.LittleEndian, C.int(wordIndex))
 			binary.Write(weights, binary.LittleEndian, C.float(wordWeight))
-
-			fmt.Println("[", wordCount, "]=", wordIndex, ";", wordWeight)
 
 			wordCount++
 		}

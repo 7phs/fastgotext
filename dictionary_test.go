@@ -24,6 +24,10 @@ func TestDictionary_Doc2Bow(t *testing.T) {
 	}
 
 	for wordIndex, existFreq := range exist {
+		if existFreq == 0 {
+			continue
+		}
+
 		if _, ok := expected[wordIndex]; !ok {
 			t.Error("found unexpected word freq for ", dict[wordIndex], " = ", existFreq)
 		}
