@@ -1,7 +1,7 @@
 package fastgotext
 
 import (
-	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -76,8 +76,21 @@ func TestFastText_GetDictionary(t *testing.T) {
 		return
 	}
 
-	dict := model.GetDictionary()
-	wordIndex := dict.Find("first")
+	word := "```"
+	wordIndex := 1
 
-	fmt.Println("wordIndex:", wordIndex)
+	dict := model.GetDictionary()
+
+	if existWordIndex := dict.Find(word); existWordIndex != wordIndex {
+		t.Error("failed to find exist word '", word, "'. Got index", existWordIndex, ", but expected", wordIndex)
+	}
+
+	wordsCount := dict.WordsCount()
+	if wordsCount <= 0 {
+		t.Error("wrong word count", wordsCount, ", but expected great than 0")
+	} else {
+		if existWord := dict.GetWord(wordIndex); strings.Compare(word, existWord) != 0 {
+			t.Error("failed to find exist word by index ", wordIndex, ". Got '", existWord, "', but expected is '", 1, "'")
+		}
+	}
 }

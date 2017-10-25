@@ -1,5 +1,7 @@
 .idea
 test
 lib/build
+_obj
 *.o
 *.a
+.DS_Store

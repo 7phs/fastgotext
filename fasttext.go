@@ -11,17 +11,22 @@ package fastgotext
 // const int FT_LoadModel(struct WrapperFastText*, const char*);
 // const int FT_LoadVectors(struct WrapperFastText*, const char*);
 // struct WrapperDictionary* FT_GetDictionary(struct WrapperFastText*);
-// struct WrapperVector* FT_GetVector(struct WrapperFastText* wrapper, const char* word);
+// struct WrapperVector* FT_GetVector(struct WrapperFastText*, const char*);
 // void FT_Release(struct WrapperFastText*);
 // int DICT_Find(struct WrapperDictionary*, const char*);
+// const char* DICT_GetWord(struct WrapperDictionary*, int);
+// int DICT_WordsCount(struct WrapperDictionary*);
 // void DICT_Release(struct WrapperDictionary*);
 // float VEC_Distance(struct WrapperVector* vec1, struct WrapperVector* vec2);
 // void VEC_Release(struct WrapperVector* wrapper);
 import "C"
 import (
+	"bytes"
+	"encoding/binary"
 	"math"
 	"os"
 	"sort"
+	"unsafe"
 )
 
 const (
@@ -66,7 +71,18 @@ type dictionary struct {
 }
 
 func (w *dictionary) Find(word string) int {
-	return int(C.DICT_Find(w.wrapper, C.CString(word)))
+	cWord := C.CString(word)
+	defer C.free(unsafe.Pointer(cWord))
+
+	return int(C.DICT_Find(w.wrapper, cWord))
+}
+
+func (w *dictionary) GetWord(id int) string {
+	return C.GoString(C.DICT_GetWord(w.wrapper, C.int(id)))
+}
+
+func (w *dictionary) WordsCount() int {
+	return int(C.DICT_WordsCount(w.wrapper))
 }
 
 func (w *dictionary) Free() {
@@ -85,11 +101,17 @@ func FastText() *fastText {
 }
 
 func (w *fastText) LoadModel(modelPath string) error {
-	return CastResFastText(int(C.FT_LoadModel(w.wrapper, C.CString(modelPath))))
+	cModelPath := C.CString(modelPath)
+	defer C.free(unsafe.Pointer(cModelPath))
+
+	return CastResFastText(int(C.FT_LoadModel(w.wrapper, cModelPath)))
 }
 
 func (w *fastText) LoadVectors(vectorsPath string) error {
-	return CastResFastText(int(C.FT_LoadVectors(w.wrapper, C.CString(vectorsPath))))
+	cVectorsPath := C.CString(vectorsPath)
+	defer C.free(unsafe.Pointer(cVectorsPath))
+
+	return CastResFastText(int(C.FT_LoadVectors(w.wrapper, cVectorsPath)))
 }
 
 func (w *fastText) GetDictionary() *dictionary {
@@ -111,43 +133,73 @@ func (w *fastText) filterDoc(doc []string) (res []string) {
 	return
 }
 
-func (w *fastText) WMDistance(doc1 []string, doc2 []string) (float64, error) {
+func (w *fastText) WordsDistance(word1, word2 string) float32 {
+	cWord1 := C.CString(word1)
+	vec1 := C.FT_GetVector(w.wrapper, cWord1)
+	defer C.VEC_Release(vec1)
+	defer C.free(unsafe.Pointer(cWord1))
+
+	cWord2 := C.CString(word2)
+	vec2 := C.FT_GetVector(w.wrapper, cWord2)
+	defer C.VEC_Release(vec2)
+	defer C.free(unsafe.Pointer(cWord2))
+
+	return float32(C.VEC_Distance(vec1, vec2))
+}
+
+func (w *fastText) BowNormalize(bow []int, docLen int) []float32 {
+	var (
+		res        = make([]float32, len(bow))
+		normalizer = float32(docLen)
+	)
+
+	for wordIndex, freq := range bow {
+		res[wordIndex] = float32(freq) / normalizer
+	}
+
+	return res
+}
+
+func (w *fastText) WMDistance(doc1 []string, doc2 []string) (float32, error) {
 	doc1 = w.filterDoc(doc1)
 	doc2 = w.filterDoc(doc2)
 
 	if len(doc1) == 0 || len(doc2) == 0 {
-		return math.Inf(1), os.ErrInvalid
+		return float32(math.Inf(1)), os.ErrInvalid
 	}
 
 	sort.Strings(doc1)
 	sort.Strings(doc2)
 
-	wordsSet := Join(doc1, doc2)
-	vocabLen := len(wordsSet)
-	if vocabLen == 1 {
+	dict := Dictionary(Join(doc1, doc2))
+	dictLen := dict.Len()
+	if dictLen == 1 {
 		return 1., nil
 	}
 
-	distanceMatrix := make([][]float64, vocabLen*vocabLen)
+	distanceMatrix := &bytes.Buffer{}
 
-	for i, word1 := range wordsSet {
-		for j, word2 := range wordsSet {
-			if sort.SearchStrings(doc1, word1) < 0 || sort.SearchStrings(doc2, word2) < 0 {
-				continue
+	dict1 := Dictionary(doc1)
+	dict2 := Dictionary(doc2)
+
+	var distance float32 = .0
+
+	for _, word1 := range dict {
+		for _, word2 := range dict {
+			if dict1.WordIndex(word1) < 0 || dict2.WordIndex(word2) < 0 {
+				distance = .0
+			} else {
+				distance = w.WordsDistance(word1, word2)
 			}
 
-			func() {
-				vec1 := C.FT_GetVector(w.wrapper, C.CString(word1))
-				vec2 := C.FT_GetVector(w.wrapper, C.CString(word1))
-				defer C.VEC_Release(vec1)
-				defer C.VEC_Release(vec2)
-
-				distanceMatrix[i][j] = float64(C.VEC_Distance(vec1, vec2))
-			}()
+			binary.Write(distanceMatrix, binary.LittleEndian, C.float(distance))
 		}
 	}
 
-	return 0., os.ErrInvalid
+	d1 := w.BowNormalize(dict.Doc2Bow(doc1), len(doc1))
+	d2 := w.BowNormalize(dict.Doc2Bow(doc2), len(doc2))
+
+	return Emd(d1, d2, uint(dictLen), C.CBytes(distanceMatrix.Bytes())), nil
 }
 
 func (w *fastText) Free() {

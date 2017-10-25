@@ -119,6 +119,14 @@ extern "C" {
         return int(wrapper->dict->getId(word));
     }
 
+    const char* DICT_GetWord(struct WrapperDictionary* wrapper, int id) {
+        return wrapper->dict->getWord(id).c_str();
+    }
+
+    int DICT_WordsCount(struct WrapperDictionary* wrapper) {
+        return wrapper->dict->nwords();
+    }
+
     void DICT_Release(struct WrapperDictionary* wrapper) {
         wrapper->dict.reset();
 
