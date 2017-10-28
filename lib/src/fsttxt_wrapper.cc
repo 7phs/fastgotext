@@ -149,6 +149,14 @@ extern "C" {
         return result;
     }
 
+    int VEC_Size(struct WrapperVector* wrapper) {
+        return wrapper->vector->size();
+    }
+
+    float* VEC_GetData(struct WrapperVector* wrapper) {
+        return wrapper->vector->data_;
+    }
+
     struct WrapperFastText* FastText() {
         WrapperFastText *wrapper = (WrapperFastText *)malloc(sizeof (struct WrapperFastText));
 

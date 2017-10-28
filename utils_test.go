@@ -1,13 +1,13 @@
 package fastgotext
 
 import (
-	"testing"
 	"reflect"
+	"testing"
 )
 
 func TestJoin(t *testing.T) {
-	words1:=[]string{"word01", "word02", "word04", "word08", "word11"}
-	words2:=[]string{"word03", "word04", "word06", "word07", "word09"}
+	words1 := []string{"word01", "word02", "word04", "word08", "word11"}
+	words2 := []string{"word03", "word04", "word06", "word07", "word09"}
 
 	expected := []string{"word01", "word02", "word03", "word04", "word06", "word07", "word08", "word09", "word11"}
 

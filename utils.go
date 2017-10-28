@@ -1,12 +1,7 @@
 package fastgotext
 
-// #include <stdlib.h>
-import "C"
 import (
-	"bytes"
-	"encoding/binary"
 	"strings"
-	"unsafe"
 )
 
 func Join(sortedWords1, sortedWords2 []string) (res []string) {
@@ -44,20 +39,4 @@ func Join(sortedWords1, sortedWords2 []string) (res []string) {
 	}
 
 	return
-}
-
-func CastFloatMatrix(matrix [][]float32) unsafe.Pointer {
-	res := &bytes.Buffer{}
-
-	for _, row := range matrix {
-		for _, value := range row {
-			binary.Write(res, binary.LittleEndian, value)
-		}
-	}
-
-	return C.CBytes(res.Bytes())
-}
-
-func FreeFloatMatrix(matrix unsafe.Pointer) {
-	C.free(matrix)
 }

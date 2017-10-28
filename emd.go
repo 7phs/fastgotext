@@ -7,37 +7,36 @@ package fastgotext
 // float emd_dist(signature_t* sig1, signature_t* sig2, DistFeatures_t* distanceM);
 import "C"
 import (
-	"bytes"
-	"encoding/binary"
+	"bitbucket.org/7phs/fastgotext/cast"
 	"unsafe"
 )
 
 func bowToWordsWeights(docBow []float32) (C.int, unsafe.Pointer, unsafe.Pointer) {
 	var (
-		words           = &bytes.Buffer{}
-		weights         = &bytes.Buffer{}
+		words           = &cast.IntArray{}
+		weights         = &cast.FloatArray{}
 		wordCount C.int = 0
 	)
 
 	for wordIndex, wordWeight := range docBow {
 		if wordWeight > 0. {
-			binary.Write(words, binary.LittleEndian, C.int(wordIndex))
-			binary.Write(weights, binary.LittleEndian, C.float(wordWeight))
+			words.Push(wordIndex)
+			weights.Push(wordWeight)
 
 			wordCount++
 		}
 	}
 
-	return wordCount, C.CBytes(words.Bytes()), C.CBytes(weights.Bytes())
+	return wordCount, words.Pointer(), weights.Pointer()
 }
 
 func Emd(docBow1, docBow2 []float32, dm uint, distanceMatrix unsafe.Pointer) float32 {
 	count1, words1, weights1 := bowToWordsWeights(docBow1)
 	count2, words2, weights2 := bowToWordsWeights(docBow2)
-	defer C.free(words1)
-	defer C.free(weights1)
-	defer C.free(words2)
-	defer C.free(weights2)
+	defer cast.FreePointer(words1)
+	defer cast.FreePointer(weights1)
+	defer cast.FreePointer(words2)
+	defer cast.FreePointer(weights2)
 
 	sign1 := &C.signature_t{
 		n:        count1,
