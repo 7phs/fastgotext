@@ -1,7 +1,8 @@
 .idea
-test
+test-data
 lib/build
 _obj
 *.o
 *.a
+*.lock
 .DS_Store

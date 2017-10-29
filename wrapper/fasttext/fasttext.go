@@ -1,4 +1,4 @@
-package fastgotext
+package fasttext
 
 // #cgo LDFLAGS: -L${SRCDIR}/lib -lfasttext -lstdc++
 //
@@ -17,18 +17,14 @@ package fastgotext
 // const char* DICT_GetWord(struct WrapperDictionary*, int);
 // int DICT_WordsCount(struct WrapperDictionary*);
 // void DICT_Release(struct WrapperDictionary*);
-// float VEC_Distance(struct WrapperVector* vec1, struct WrapperVector* vec2);
 // int VEC_Size(struct WrapperVector* wrapper);
 // float* VEC_GetData(struct WrapperVector* wrapper);
 // void VEC_Release(struct WrapperVector* wrapper);
 import "C"
 import (
-	"bitbucket.org/7phs/fastgotext/marshal"
-	"bitbucket.org/7phs/fastgotext/vector"
-	"math"
-	"os"
-	"sort"
 	"unsafe"
+
+	"bitbucket.org/7phs/fastgotext/vector"
 )
 
 const (
@@ -87,11 +83,6 @@ func (w *dictionary) WordsCount() int {
 	return int(C.DICT_WordsCount(w.wrapper))
 }
 
-func (w *dictionary) Free() {
-	C.DICT_Release(w.wrapper)
-	w.wrapper = nil
-}
-
 type fastText struct {
 	wrapper *C.struct_WrapperFastText
 }
@@ -122,19 +113,6 @@ func (w *fastText) GetDictionary() *dictionary {
 	}
 }
 
-func (w *fastText) filterDoc(doc []string) (res []string) {
-	dict := w.GetDictionary()
-	res = make([]string, 0, len(doc))
-
-	for _, word := range doc {
-		if dict.Find(word) > 0 {
-			res = append(res, word)
-		}
-	}
-
-	return
-}
-
 func (w *fastText) WordToVector(word string) []float32 {
 	cWord := C.CString(word)
 	defer C.free(unsafe.Pointer(cWord))
@@ -143,106 +121,6 @@ func (w *fastText) WordToVector(word string) []float32 {
 	defer C.VEC_Release(vec)
 
 	return vector.UnmarshalF32(unsafe.Pointer(C.VEC_GetData(vec)), int(C.VEC_Size(vec)))
-}
-
-func (w *fastText) DocToVectors(doc []string) [][]float32 {
-	res := make([][]float32, 0, len(doc))
-
-	for _, word := range doc {
-		res = append(res, w.WordToVector(word))
-	}
-
-	return res
-}
-
-func (w *fastText) WordsDistance(word1, word2 string) float32 {
-	cWord1 := C.CString(word1)
-	defer marshal.FreePointer(unsafe.Pointer(cWord1))
-
-	vec1 := C.FT_GetVector(w.wrapper, cWord1)
-	defer C.VEC_Release(vec1)
-
-	cWord2 := C.CString(word2)
-	defer C.free(unsafe.Pointer(cWord2))
-
-	vec2 := C.FT_GetVector(w.wrapper, cWord2)
-	defer C.VEC_Release(vec2)
-
-	return float32(C.VEC_Distance(vec1, vec2))
-}
-
-func (w *fastText) BowNormalize(bow []int, docLen int) []float32 {
-	var (
-		res        = make([]float32, len(bow))
-		normalizer = float32(docLen)
-	)
-
-	for wordIndex, freq := range bow {
-		res[wordIndex] = float32(freq) / normalizer
-	}
-
-	return res
-}
-
-func (w *fastText) WMDistance(doc1, doc2 []string) (float32, error) {
-	doc1 = w.filterDoc(doc1)
-	doc2 = w.filterDoc(doc2)
-
-	if len(doc1) == 0 || len(doc2) == 0 {
-		return float32(math.Inf(1)), os.ErrInvalid
-	}
-
-	sort.Strings(doc1)
-	sort.Strings(doc2)
-
-	dict := Dictionary(Join(doc1, doc2))
-	dictLen := dict.Len()
-	if dictLen == 1 {
-		return 1., nil
-	}
-
-	distanceMatrix := &marshal.FloatArray{}
-
-	dict1 := Dictionary(doc1)
-	dict2 := Dictionary(doc2)
-
-	var distance float32 = .0
-
-	for _, word1 := range dict {
-		for _, word2 := range dict {
-			if dict1.WordIndex(word1) < 0 || dict2.WordIndex(word2) < 0 {
-				distance = .0
-			} else {
-				distance = w.WordsDistance(word1, word2)
-			}
-
-			distanceMatrix.Push(distance)
-		}
-	}
-
-	d1 := w.BowNormalize(dict.Doc2Bow(doc1), len(doc1))
-	d2 := w.BowNormalize(dict.Doc2Bow(doc2), len(doc2))
-
-	return Emd(d1, d2, uint(distanceMatrix.Len()), distanceMatrix.Pointer()), nil
-}
-
-func (w *fastText) Similarity(doc1, doc2 []string) (float32, error) {
-	doc1 = w.filterDoc(doc1)
-	doc2 = w.filterDoc(doc2)
-
-	core1, err := vector.Mean(w.DocToVectors(doc1)...)
-	if err != nil {
-		// TODO error wrap
-		return .0, err
-	}
-
-	core2, err := vector.Mean(w.DocToVectors(doc2)...)
-	if err != nil {
-		// TODO error wrap
-		return .0, err
-	}
-
-	return vector.Dot(core1, core2), os.ErrInvalid
 }
 
 func (w *fastText) Free() {

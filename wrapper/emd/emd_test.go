@@ -1,7 +1,7 @@
-package fastgotext
+package emd
 
 import (
-	"bitbucket.org/7phs/fastgotext/marshal"
+	"bitbucket.org/7phs/fastgotext/wrapper/marshal"
 	"testing"
 )
 

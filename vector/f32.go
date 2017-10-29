@@ -15,11 +15,9 @@ func F32Compare(f1, f2 float32) int {
 		return 0
 	case res < 0:
 		return -1
-	case res > 0:
-		return 1
 	}
-
-	return 2
+	// >0
+	return 1
 }
 
 type F32Vector []float32
@@ -57,7 +55,7 @@ func (v F32Vector) Len() int {
 func (v *F32Vector) Add(vec F32Vector) error {
 	ref := (*F32Vector)(v)
 
-	if (*v).Len() > vec.Len() {
+	if (*v).Len() != vec.Len() {
 		return os.ErrInvalid
 	}
 
@@ -71,7 +69,7 @@ func (v *F32Vector) Add(vec F32Vector) error {
 func (v *F32Vector) Mul(vec F32Vector) error {
 	ref := (*F32Vector)(v)
 
-	if (*v).Len() > vec.Len() {
+	if (*v).Len() != vec.Len() {
 		return os.ErrInvalid
 	}
 
@@ -82,12 +80,47 @@ func (v *F32Vector) Mul(vec F32Vector) error {
 	return nil
 }
 
+func (v *F32Vector) Sub(vec F32Vector) error {
+	ref := (*F32Vector)(v)
+
+	if (*v).Len() != vec.Len() {
+		return os.ErrInvalid
+	}
+
+	for i := range *ref {
+		(*ref)[i] -= vec[i]
+	}
+
+	return nil
+}
+
+func (v *F32Vector) Pow() {
+	ref := (*F32Vector)(v)
+
+	for i := range *ref {
+		(*ref)[i] *= (*ref)[i]
+	}
+}
+
 func (v F32Vector) Sum() (res float32) {
 	for _, value := range v {
 		res += value
 	}
 
 	return
+}
+
+func (v F32Vector) Distance() float32 {
+	var (
+		res float64
+	)
+
+	for _, value := range v {
+		v := float64(value)
+		res += v * v
+	}
+
+	return float32(math.Sqrt(res))
 }
 
 func (v *F32Vector) Normalize(normalizer float32) {

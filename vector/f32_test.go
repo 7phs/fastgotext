@@ -1,8 +1,10 @@
 package vector
 
 import (
-	"bitbucket.org/7phs/fastgotext/marshal"
 	"testing"
+
+	"bitbucket.org/7phs/fastgotext/wrapper/marshal"
+	"math"
 )
 
 func TestF32Compare(t *testing.T) {
@@ -43,6 +45,8 @@ func TestIsF32Equal(t *testing.T) {
 	vec1 := F32Vector{.1, .2, .3, .0}
 	vec2 := F32Vector{.1, .2, .3, float32(F32_EPS) / 2}
 	vec3 := F32Vector{.4, .2, .3, .5}
+	vec4 := F32Vector{.4, .2, .3, .5, .6}
+	vec5 := F32Vector{.4, .2, .3}
 
 	if !IsF32Equal(vec1, vec2) {
 		t.Error("failed to check equal ", vec1, " and ", vec2, ", but they are equal")
@@ -51,11 +55,20 @@ func TestIsF32Equal(t *testing.T) {
 	if IsF32Equal(vec1, vec3) {
 		t.Error("failed to check equal ", vec1, " and ", vec3, ", but they aren't equal")
 	}
+
+	if IsF32Equal(vec1, vec4) {
+		t.Error("failed to check equal ", vec1, " and ", vec4, " by length, but they aren't equal")
+	}
+
+	if IsF32Equal(vec1, vec5) {
+		t.Error("failed to check equal ", vec1, " and ", vec4, " by length, but they aren't equal")
+	}
 }
 
 func TestF32Vector_Add(t *testing.T) {
 	vec1 := F32Vector{.1, .2, .3}
 	vec2 := F32Vector{.4, .4, .4}
+	vec3 := F32Vector{.4, .4}
 
 	expected := F32Vector{.5, .6, .7}
 
@@ -64,11 +77,34 @@ func TestF32Vector_Add(t *testing.T) {
 	if !IsF32Equal(vec1, expected) {
 		t.Error("failed to sum vec1 and vec2. Result is", vec1, ", but expected is", expected)
 	}
+
+	if err := vec1.Add(vec3); err == nil {
+		t.Error("failed to check sum vec1 and vec3. Result is", err, ", but expected is error")
+	}
+}
+
+func TestF32Vector_Sub(t *testing.T) {
+	vec1 := F32Vector{.1, .2, .3}
+	vec2 := F32Vector{.4, .4, .4}
+	vec3 := F32Vector{.4, .4}
+
+	expected := F32Vector{.3, .2, .1}
+
+	vec2.Sub(vec1)
+
+	if !IsF32Equal(vec2, expected) {
+		t.Error("failed to subtract vec2 and vec1. Result is", vec2, ", but expected is", expected)
+	}
+
+	if err := vec2.Sub(vec3); err == nil {
+		t.Error("failed to check subtract vec1 and vec3. Result is", err, ", but expected is error")
+	}
 }
 
 func TestF32Vector_Mul(t *testing.T) {
 	vec1 := F32Vector{.1, .2, .3}
 	vec2 := F32Vector{.4, .4, .4}
+	vec3 := F32Vector{.4, .4}
 
 	expected := F32Vector{.04, .08, .12}
 
@@ -76,6 +112,10 @@ func TestF32Vector_Mul(t *testing.T) {
 
 	if !IsF32Equal(vec1, expected) {
 		t.Error("failed to mul vec1 by vec2. Result is", vec1, ", but expected is", expected)
+	}
+
+	if err := vec1.Mul(vec3); err == nil {
+		t.Error("failed to check mul vec1 and vec3. Result is", err, ", but expected is error")
 	}
 }
 
@@ -91,11 +131,33 @@ func TestF32Vector_Sum(t *testing.T) {
 
 }
 
+func TestF32Vector_Pow(t *testing.T) {
+	vec := F32Vector{.1, .2, .3}
+
+	expected := F32Vector{.01, .04, .09}
+
+	vec.Pow()
+
+	if !IsF32Equal(vec, expected) {
+		t.Error("failed to subtract vec2 and vec1. Result is", vec, ", but expected is", expected)
+	}
+}
+
+func TestF32Vector_Distance(t *testing.T) {
+	vec := F32Vector{.1, .2, .3}
+
+	expected := float32(math.Sqrt(.14))
+
+	if exist := vec.Distance(); exist != expected {
+		t.Error("failed to calc unified vec distance. Result is ", exist, ", but expected is ", expected)
+	}
+}
+
 func TestF32Vector_Normalize(t *testing.T) {
-	vec := F32Vector([]float32{.12, .9, .6})
+	vec := F32Vector{.12, .9, .6}
 	var normalizer float32 = 3
 
-	expected := F32Vector([]float32{.04, .3, .2})
+	expected := F32Vector{.04, .3, .2}
 
 	vec.Normalize(normalizer)
 
@@ -109,18 +171,23 @@ func TestF32Mean(t *testing.T) {
 		vec1 = F32Vector{.1, .2, .3}
 		vec2 = F32Vector{.9, .8, .7}
 		vec3 = F32Vector{3.5, 3.5, 3.5}
+		vec4 = F32Vector{1., 2., 3., .4}
 	)
 
 	expected := F32Vector{1.5, 1.5, 1.5}
 
-	exist, err := F32Mean(vec1, vec2, vec3)
-	if err != nil {
-		t.Error("failed to calc a mean of vecs", err)
-		return
+	if _, err := F32Mean(); err == nil {
+		t.Error("failed to check empty args mean")
 	}
 
-	if !IsF32Equal(exist, expected) {
+	if exist, err := F32Mean(vec1, vec2, vec3); err != nil {
+		t.Error("failed to calc a mean of vecs", err)
+	} else if !IsF32Equal(exist, expected) {
 		t.Error("failed to calc a mean of vecs. Result is", exist, ", but expected is", expected)
+	}
+
+	if exist, err := F32Mean(vec1, vec2, vec3, vec4); err == nil {
+		t.Error("failed to check vec with different length. Result is ", err, " and ", exist, ", but expected is error and .0")
 	}
 }
 
@@ -129,10 +196,19 @@ func TestF32Dot(t *testing.T) {
 		vec1             = F32Vector{.2, .2, .3}
 		vec2             = F32Vector{.5, .8, .7}
 		vec3             = F32Vector{1., 2., 3.}
+		vec4             = F32Vector{1., 2.}
 		expected float32 = 1.05
 	)
 
+	if v := F32Dot(); v != .0 {
+		t.Error("failed to check empty args mean")
+	}
+
 	if exist := F32Dot(vec1, vec2, vec3); F32Compare(exist, expected) != 0 {
 		t.Error("failed to calc dot for three vec. Result is ", exist, ", but expected is", expected)
+	}
+
+	if exist := F32Dot(vec1, vec2, vec3, vec4); exist != .0 {
+		t.Error("failed to check vec with different length. Result is ", exist, ", but expected is .0")
 	}
 }

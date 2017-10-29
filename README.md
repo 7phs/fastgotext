@@ -11,18 +11,18 @@ git submodule update
 Make fasttext:
 
 ```
-cd lib/fasttext
+cd wrapper/lib/fasttext
 make
 ```
 
 Build a model:
 ```
-lib/fasttext/fasttext skipgram -input README.md -output test/model
+wrapper/lib/fasttext/fasttext skipgram -input README.md -output test/model
 ```
 
 # Build fasttext wrapper
 
 ```
 go generate ./...
-go build
+go build ./...
 ```

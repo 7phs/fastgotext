@@ -8,18 +8,16 @@
 #
 
 BASE = fasttext/
-EMD = emd/
-OBJS = $(BUILD)args.o $(BUILD)dictionary.o $(BUILD)productquantizer.o $(BUILD)matrix.o $(BUILD)qmatrix.o $(BUILD)vector.o $(BUILD)model.o $(BUILD)utils.o $(BUILD)fasttext.o $(BUILD)emd.o $(BUILD)fsttxt_wrapper.o $(BUILD)emd_wrapper.o
+OBJS = $(BUILD)args.o $(BUILD)dictionary.o $(BUILD)productquantizer.o $(BUILD)matrix.o $(BUILD)qmatrix.o $(BUILD)vector.o $(BUILD)model.o $(BUILD)utils.o $(BUILD)fasttext.o $(BUILD)fsttxt_wrapper.o
 BUILD = build/
 
 CXX = c++
 CXXFLAGS = -pthread -std=c++0x
-CC = cc
-CCFLAGS = -fPIC
 INCLUDES = -I.
 
+$(shell mkdir -p $(BUILD))
+
 opt: CXXFLAGS += -O3 -funroll-loops
-opt: CCFLAGS += -O3 -funroll-loops
 opt: build
 
 $(BUILD)args.o: $(BASE)src/args.cc $(BASE)src/args.h
@@ -49,14 +47,8 @@ $(BUILD)utils.o: $(BASE)src/utils.cc $(BASE)src/utils.h
 $(BUILD)fasttext.o: $(BASE)src/fasttext.cc $(BASE)src/*.h
 	$(CXX) $(CXXFLAGS) -c $(BASE)src/fasttext.cc -o $(BUILD)fasttext.o
 
-$(BUILD)emd.o: $(EMD)emd.c $(EMD)*.h
-	$(CXX) $(CXXFLAGS) -c $(EMD)emd.c -o $(BUILD)emd.o
-
 $(BUILD)fsttxt_wrapper.o: src/fsttxt_wrapper.cc
 	$(CXX) $(CXXFLAGS) -c src/fsttxt_wrapper.cc -o $(BUILD)fsttxt_wrapper.o
-
-$(BUILD)emd_wrapper.o: src/emd_wrapper.cc
-	$(CXX) $(CXXFLAGS) -c src/emd_wrapper.cc -o $(BUILD)emd_wrapper.o
 
 libfasttext.a: $(OBJS)
 	$(AR) rcs libfasttext.a $(OBJS)

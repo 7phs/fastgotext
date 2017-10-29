@@ -1,14 +1,13 @@
-package fastgotext
+package emd
 
-//
+// #cgo LDFLAGS: -L${SRCDIR}/lib -lemd
 // #include <stdlib.h>
-//
-// #include "lib/emd/emd.h"
-// float emd_dist(signature_t* sig1, signature_t* sig2, DistFeatures_t* distanceM);
+// #include "lib/src/emd.h"
 import "C"
 import (
-	"bitbucket.org/7phs/fastgotext/marshal"
 	"unsafe"
+
+	"bitbucket.org/7phs/fastgotext/wrapper/marshal"
 )
 
 func bowToWordsWeights(docBow []float32) (C.int, unsafe.Pointer, unsafe.Pointer) {
@@ -50,12 +49,12 @@ func Emd(docBow1, docBow2 []float32, dm uint, distanceMatrix unsafe.Pointer) flo
 		Features: (*C.int)(words2),
 	}
 
-	distance := &C.DistFeatures_t{
+	distance := &C.dist_features_t{
 		dim:            (C.uint)(dm),
 		distanceMatrix: (*C.float)(distanceMatrix),
 	}
 
-	res := C.emd_dist(sign1, sign2, distance)
+	res := C.emd(sign1, sign2, distance, nil, nil)
 
 	return float32(res)
 }

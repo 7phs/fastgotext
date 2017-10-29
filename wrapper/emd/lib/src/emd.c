@@ -63,7 +63,7 @@ static double _maxW;
 static float _maxC;
 
 /* DECLARATION OF FUNCTIONS */
-static float init(signature_t *Signature1, signature_t *Signature2, DistFeatures_t *Distance);
+static float init(signature_t *Signature1, signature_t *Signature2, dist_features_t *Distance);
 static void findBasicVariables(node1_t *U, node1_t *V);
 static int isOptimal(node1_t *U, node1_t *V);
 static int findLoop(node2_t **Loop);
@@ -79,7 +79,7 @@ static void printSolution();
 
 /******************************************************************************
 float emd(signature_t *Signature1, signature_t *Signature2,
-	  float (*Dist)(feature_t *, feature_t *), flow_t *Flow, int *FlowSize)
+	  float (*Dist)(int *, int *), flow_t *Flow, int *FlowSize)
   
 where
 
@@ -97,7 +97,7 @@ where
               
 ******************************************************************************/
 
-float emd(signature_t *Signature1, signature_t *Signature2, DistFeatures_t *Distance,
+float emd(signature_t *Signature1, signature_t *Signature2, dist_features_t *Distance,
 	  flow_t *Flow, int *FlowSize)
 {
   int itr;
@@ -177,11 +177,11 @@ float emd(signature_t *Signature1, signature_t *Signature2, DistFeatures_t *Dist
 /**********************
    init
 **********************/
-static float init(signature_t *Signature1, signature_t *Signature2, DistFeatures_t *Distance)
+static float init(signature_t *Signature1, signature_t *Signature2, dist_features_t *Distance)
 {
   int i, j;
   double sSum, dSum, diff;
-  feature_t *P1, *P2;
+  int *P1, *P2;
   double S[MAX_SIG_SIZE1], D[MAX_SIG_SIZE1];
  
   _n1 = Signature1->n;

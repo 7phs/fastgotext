@@ -1,9 +1,16 @@
-package fastgotext
+package fasttext
 
 import (
-	"bitbucket.org/7phs/fastgotext/vector"
 	"strings"
 	"testing"
+
+	"bitbucket.org/7phs/fastgotext/vector"
+)
+
+const (
+	testDataPath     = "../../test-data/"
+	testDataModelBin = testDataPath + "/model.bin"
+	testDataModelVec = testDataPath + "/model.vec"
 )
 
 func TestCastResFastText(t *testing.T) {
@@ -13,6 +20,18 @@ func TestCastResFastText(t *testing.T) {
 
 	if CastResFastText(int(RES_ERROR_NOT_OPEN)) == nil {
 		t.Error("failed to marshal error")
+	}
+
+	for _, v := range []ResFastText{
+		RES_OK,
+		RES_ERROR_NOT_OPEN,
+		RES_ERROR_WRONG_MODEL,
+		RES_ERROR_MODEL_NOT_INIT,
+		ResFastText(10000000),
+	} {
+		if v.Error() == "" {
+			t.Error("failed to implement error interface")
+		}
 	}
 }
 
@@ -33,7 +52,7 @@ func TestFastText_LoadModel(t *testing.T) {
 	}
 	defer model.Free()
 
-	if err := model.LoadModel("test/model.bin"); err != nil {
+	if err := model.LoadModel(testDataModelBin); err != nil {
 		t.Error("failed to load fasttext model:", err)
 	}
 }
@@ -46,15 +65,15 @@ func TestFastText_LoadVector(t *testing.T) {
 	}
 	defer model.Free()
 
-	if err := model.LoadVectors("test/model.vec"); err == nil {
+	if err := model.LoadVectors(testDataModelVec); err == nil {
 		t.Error("load fasttext vector into uninit model")
 	}
 
-	if err := model.LoadModel("test/model.bin"); err != nil {
+	if err := model.LoadModel(testDataModelBin); err != nil {
 		t.Error("failed to load fasttext model:", err)
 	}
 
-	if err := model.LoadVectors("test/model.vec"); err != nil {
+	if err := model.LoadVectors(testDataModelVec); err != nil {
 		t.Error("failed to load fasttext vector:", err)
 	}
 }
@@ -67,12 +86,12 @@ func TestFastText_GetDictionary(t *testing.T) {
 	}
 	defer model.Free()
 
-	if err := model.LoadModel("test/model.bin"); err != nil {
+	if err := model.LoadModel(testDataModelBin); err != nil {
 		t.Error("failed to load fasttext model:", err)
 		return
 	}
 
-	if err := model.LoadVectors("test/model.vec"); err != nil {
+	if err := model.LoadVectors(testDataModelVec); err != nil {
 		t.Error("failed to load fasttext vector:", err)
 		return
 	}
@@ -104,12 +123,12 @@ func TestFastText_WordToVector(t *testing.T) {
 	}
 	defer model.Free()
 
-	if err := model.LoadModel("test/model.bin"); err != nil {
+	if err := model.LoadModel(testDataModelBin); err != nil {
 		t.Error("failed to load fasttext model:", err)
 		return
 	}
 
-	if err := model.LoadVectors("test/model.vec"); err != nil {
+	if err := model.LoadVectors(testDataModelVec); err != nil {
 		t.Error("failed to load fasttext vector:", err)
 		return
 	}

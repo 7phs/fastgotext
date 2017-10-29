@@ -15,18 +15,11 @@
     E-Mail: rubner@cs.stanford.edu   URL: http://vision.stanford.edu/~rubner
 */
 
-
 /* DEFINITIONS */
 #define MAX_SIG_SIZE   100
 #define MAX_ITERATIONS 500
 //#define INFINITY       1e20
 #define EPSILON        1e-6
-
-/*****************************************************************************/
-/* feature_t SHOULD BE MODIFIED BY THE USER TO REFLECT THE FEATURE TYPE      */
-typedef int feature_t;
-/*****************************************************************************/
-
 
 typedef struct
 {
@@ -48,10 +41,10 @@ typedef struct
 {
     unsigned int dim;
     float*       distanceMatrix;
-} DistFeatures_t;
+} dist_features_t;
 
 float emd(signature_t *Signature1, signature_t *Signature2,
-	  DistFeatures_t *Distance,
+	  dist_features_t *Distance,
 	  flow_t *Flow, int *FlowSize);
 
 #endif
