@@ -7,14 +7,14 @@ package fastgotext
 // float emd_dist(signature_t* sig1, signature_t* sig2, DistFeatures_t* distanceM);
 import "C"
 import (
-	"bitbucket.org/7phs/fastgotext/cast"
+	"bitbucket.org/7phs/fastgotext/marshal"
 	"unsafe"
 )
 
 func bowToWordsWeights(docBow []float32) (C.int, unsafe.Pointer, unsafe.Pointer) {
 	var (
-		words           = &cast.IntArray{}
-		weights         = &cast.FloatArray{}
+		words           = &marshal.IntArray{}
+		weights         = &marshal.FloatArray{}
 		wordCount C.int = 0
 	)
 
@@ -33,10 +33,10 @@ func bowToWordsWeights(docBow []float32) (C.int, unsafe.Pointer, unsafe.Pointer)
 func Emd(docBow1, docBow2 []float32, dm uint, distanceMatrix unsafe.Pointer) float32 {
 	count1, words1, weights1 := bowToWordsWeights(docBow1)
 	count2, words2, weights2 := bowToWordsWeights(docBow2)
-	defer cast.FreePointer(words1)
-	defer cast.FreePointer(weights1)
-	defer cast.FreePointer(words2)
-	defer cast.FreePointer(weights2)
+	defer marshal.FreePointer(words1)
+	defer marshal.FreePointer(weights1)
+	defer marshal.FreePointer(words2)
+	defer marshal.FreePointer(weights2)
 
 	sign1 := &C.signature_t{
 		n:        count1,

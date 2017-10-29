@@ -34,7 +34,7 @@ func CopyF32(vec F32Vector) F32Vector {
 	return append(res, vec...)
 }
 
-func CFloatToF32(ptr unsafe.Pointer, sz int) F32Vector {
+func UnmarshalF32(ptr unsafe.Pointer, sz int) F32Vector {
 	var (
 		arrP    = uintptr(ptr)
 		floatSz = uintptr(C.sizeof_float)

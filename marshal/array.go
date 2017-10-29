@@ -1,4 +1,4 @@
-package cast
+package marshal
 
 // #include <stdlib.h>
 import "C"
@@ -36,7 +36,7 @@ func (o *FloatArray) Push(v float32) {
 	o.size++
 }
 
-func (o *FloatArray) Cast(array []float32) *FloatArray {
+func (o *FloatArray) Marshal(array []float32) *FloatArray {
 	for _, value := range array {
 		o.Push(value)
 	}
@@ -68,7 +68,7 @@ func (o *FloatMatrix) Row() {
 	atomic.AddInt32(&o.rowCount, 1)
 }
 
-func (o *FloatMatrix) Cast(matrix [][]float32) *FloatMatrix {
+func (o *FloatMatrix) Marshal(matrix [][]float32) *FloatMatrix {
 	for _, row := range matrix {
 		o.Row()
 

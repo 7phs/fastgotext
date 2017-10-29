@@ -23,7 +23,7 @@ package fastgotext
 // void VEC_Release(struct WrapperVector* wrapper);
 import "C"
 import (
-	"bitbucket.org/7phs/fastgotext/cast"
+	"bitbucket.org/7phs/fastgotext/marshal"
 	"bitbucket.org/7phs/fastgotext/vector"
 	"math"
 	"os"
@@ -142,7 +142,7 @@ func (w *fastText) WordToVector(word string) []float32 {
 	vec := C.FT_GetVector(w.wrapper, cWord)
 	defer C.VEC_Release(vec)
 
-	return vector.CFloatToF32(unsafe.Pointer(C.VEC_GetData(vec)), int(C.VEC_Size(vec)))
+	return vector.UnmarshalF32(unsafe.Pointer(C.VEC_GetData(vec)), int(C.VEC_Size(vec)))
 }
 
 func (w *fastText) DocToVectors(doc []string) [][]float32 {
@@ -157,7 +157,7 @@ func (w *fastText) DocToVectors(doc []string) [][]float32 {
 
 func (w *fastText) WordsDistance(word1, word2 string) float32 {
 	cWord1 := C.CString(word1)
-	defer cast.FreePointer(unsafe.Pointer(cWord1))
+	defer marshal.FreePointer(unsafe.Pointer(cWord1))
 
 	vec1 := C.FT_GetVector(w.wrapper, cWord1)
 	defer C.VEC_Release(vec1)
@@ -201,7 +201,7 @@ func (w *fastText) WMDistance(doc1, doc2 []string) (float32, error) {
 		return 1., nil
 	}
 
-	distanceMatrix := &cast.FloatArray{}
+	distanceMatrix := &marshal.FloatArray{}
 
 	dict1 := Dictionary(doc1)
 	dict2 := Dictionary(doc2)

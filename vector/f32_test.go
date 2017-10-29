@@ -1,7 +1,7 @@
 package vector
 
 import (
-	"bitbucket.org/7phs/fastgotext/cast"
+	"bitbucket.org/7phs/fastgotext/marshal"
 	"testing"
 )
 
@@ -27,12 +27,12 @@ func TestF32Compare(t *testing.T) {
 func TestCFloatToF32(t *testing.T) {
 	var (
 		expected = []float32{.1, 2.3, 56.7}
-		arr      = (&cast.FloatArray{}).Cast(expected)
+		arr      = (&marshal.FloatArray{}).Marshal(expected)
 		src      = arr.Pointer()
 	)
-	defer cast.FreePointer(src)
+	defer marshal.FreePointer(src)
 
-	exist := CFloatToF32(src, arr.Len())
+	exist := UnmarshalF32(src, arr.Len())
 
 	if !IsF32Equal(exist, F32Vector(expected)) {
 		t.Error("failed to convert from C.float array to []float32. Result is ", exist, ", but expected is ", expected)

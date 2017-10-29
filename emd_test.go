@@ -1,7 +1,7 @@
 package fastgotext
 
 import (
-	"bitbucket.org/7phs/fastgotext/cast"
+	"bitbucket.org/7phs/fastgotext/marshal"
 	"testing"
 )
 
@@ -18,8 +18,8 @@ func TestEmd(t *testing.T) {
 		{3., 13., 8., 33., 3., 0.},
 	}
 
-	matrix := (&cast.FloatMatrix{}).Cast(distanceMatrix).Pointer()
-	defer cast.FreePointer(matrix)
+	matrix := (&marshal.FloatMatrix{}).Marshal(distanceMatrix).Pointer()
+	defer marshal.FreePointer(matrix)
 
 	exist := Emd(docBow1, docBow2, uint(len(distanceMatrix)), matrix)
 	expected := float32(12.604165)
