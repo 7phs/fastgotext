@@ -1,7 +1,6 @@
 package emd
 
 import (
-	"bitbucket.org/7phs/fastgotext/wrapper/marshal"
 	"testing"
 )
 
@@ -18,10 +17,7 @@ func TestEmd(t *testing.T) {
 		{3., 13., 8., 33., 3., 0.},
 	}
 
-	matrix := (&marshal.FloatMatrix{}).Marshal(distanceMatrix).Pointer()
-	defer marshal.FreePointer(matrix)
-
-	exist := Emd(docBow1, docBow2, uint(len(distanceMatrix)), matrix)
+	exist := Emd(docBow1, docBow2, distanceMatrix)
 	expected := float32(12.604165)
 
 	if exist != expected {

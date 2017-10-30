@@ -1,11 +1,11 @@
 package wordvector
 
 import (
-	"bitbucket.org/7phs/fastgotext/vector"
-	"bitbucket.org/7phs/fastgotext/wrapper/emd"
-	"bitbucket.org/7phs/fastgotext/wrapper/marshal"
 	"math"
 	"os"
+
+	"bitbucket.org/7phs/fastgotext/vector"
+	"bitbucket.org/7phs/fastgotext/wrapper/emd"
 )
 
 type WordVectorDictionary interface {
@@ -59,53 +59,35 @@ func (w *wordVector) WordsDistance(word1, word2 string) float32 {
 	return float32(math.Sqrt(float64(vec.Sum())))
 }
 
-func (w *wordVector) BowNormalize(bow []int, docLen int) []float32 {
-	var (
-		res        = make([]float32, len(bow))
-		normalizer = float32(docLen)
-	)
-
-	for wordIndex, freq := range bow {
-		res[wordIndex] = float32(freq) / normalizer
-	}
-
-	return res
-}
-
 func (w *wordVector) WMDistance(doc1, doc2 []string) (float32, error) {
-	dict1 := Dictionary(w.filterDoc(doc1)...)
-	dict2 := Dictionary(w.filterDoc(doc2)...)
+	doc1 = w.filterDoc(doc1)
+	doc2 = w.filterDoc(doc2)
+
+	dict1 := Dictionary(doc1...)
+	dict2 := Dictionary(doc2...)
 
 	if dict1.IsEmpty() || dict2.IsEmpty() {
 		return float32(math.Inf(1)), os.ErrInvalid
 	}
 
-	dict := dict1.Join(doc2)
+	dict := dict1.Join(dict2)
 	dictLen := dict.Len()
-	if dictLen == 1 {
+	if dictLen <= 1 {
 		return 1., nil
 	}
 
-	distanceMatrix := &marshal.FloatArray{}
+	distanceMatrix := make([][]float32, dictLen)
+	for i, word1 := range dict {
+		distanceMatrix[i] = make([]float32, dictLen)
 
-	var distance float32 = .0
-
-	for _, word1 := range dict {
-		for _, word2 := range dict {
-			if dict1.WordIndex(word1) < 0 || dict2.WordIndex(word2) < 0 {
-				distance = .0
-			} else {
-				distance = w.WordsDistance(word1, word2)
+		for j, word2 := range dict {
+			if dict1.WordIndex(word1) >= 0 && dict2.WordIndex(word2) >= 0 {
+				distanceMatrix[i][j] = w.WordsDistance(word1, word2)
 			}
-
-			distanceMatrix.Push(distance)
 		}
 	}
 
-	d1 := w.BowNormalize(dict.Doc2Bow(doc1), len(doc1))
-	d2 := w.BowNormalize(dict.Doc2Bow(doc2), len(doc2))
-
-	return emd.Emd(d1, d2, uint(distanceMatrix.Len()), distanceMatrix.Pointer()), nil
+	return emd.Emd(dict.BowNormalize(doc1), dict.BowNormalize(doc2), distanceMatrix), nil
 }
 
 func (w *wordVector) docToUnitVec(doc []string) (vector.F32Vector, error) {
@@ -139,5 +121,5 @@ func (w *wordVector) Similarity(doc1, doc2 []string) (float32, error) {
 		return .0, err
 	}
 
-	return vector.F32Dot(unitCore1, unitCore2), os.ErrInvalid
+	return vector.F32Dot(unitCore1, unitCore2), nil
 }

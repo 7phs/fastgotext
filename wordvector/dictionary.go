@@ -8,7 +8,32 @@ import (
 type dictionary []string
 
 func Dictionary(words ...string) dictionary {
-	return dictionary(words).Sort()
+	return dictionary(words).Sort().filter()
+}
+
+func (w dictionary) filter() dictionary {
+	var (
+		res       = w
+		prevWord  = ""
+		unchanged = true
+	)
+
+	for i, word := range w {
+		if word == "" || word == prevWord {
+			if unchanged {
+				res = make(dictionary, 0, len(w))
+				res = append(res, w[:i]...)
+
+				unchanged = false
+			}
+		} else if !unchanged {
+			res = append(res, word)
+		}
+
+		prevWord = word
+	}
+
+	return res
 }
 
 func (w dictionary) Join(other dictionary) (res dictionary) {
@@ -87,6 +112,20 @@ func (w dictionary) Doc2Bow(doc []string) []int {
 		if index := w.WordIndex(word); index >= 0 {
 			res[index] = freq
 		}
+	}
+
+	return res
+}
+
+func (w dictionary) BowNormalize(doc []string) []float32 {
+	var (
+		bow        = w.Doc2Bow(doc)
+		res        = make([]float32, len(bow))
+		normalizer = float32(len(doc))
+	)
+
+	for wordIndex, freq := range bow {
+		res[wordIndex] = float32(freq) / normalizer
 	}
 
 	return res

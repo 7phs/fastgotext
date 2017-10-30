@@ -29,13 +29,20 @@ func bowToWordsWeights(docBow []float32) (C.int, unsafe.Pointer, unsafe.Pointer)
 	return wordCount, words.Pointer(), weights.Pointer()
 }
 
-func Emd(docBow1, docBow2 []float32, dm uint, distanceMatrix unsafe.Pointer) float32 {
-	count1, words1, weights1 := bowToWordsWeights(docBow1)
-	count2, words2, weights2 := bowToWordsWeights(docBow2)
+func Emd(docBow1, docBow2 []float32, distanceMatrix [][]float32) float32 {
+	distanceMarshaled := (&marshal.FloatMatrix{}).Marshal(distanceMatrix)
+
+	var (
+		count1, words1, weights1 = bowToWordsWeights(docBow1)
+		count2, words2, weights2 = bowToWordsWeights(docBow2)
+		distanceLen              = uint(distanceMarshaled.RowLen())
+		distancePtr              = distanceMarshaled.Pointer()
+	)
 	defer marshal.FreePointer(words1)
 	defer marshal.FreePointer(weights1)
 	defer marshal.FreePointer(words2)
 	defer marshal.FreePointer(weights2)
+	defer marshal.FreePointer(distancePtr)
 
 	sign1 := &C.signature_t{
 		n:        count1,
@@ -50,8 +57,8 @@ func Emd(docBow1, docBow2 []float32, dm uint, distanceMatrix unsafe.Pointer) flo
 	}
 
 	distance := &C.dist_features_t{
-		dim:            (C.uint)(dm),
-		distanceMatrix: (*C.float)(distanceMatrix),
+		dim:            (C.uint)(distanceLen),
+		distanceMatrix: (*C.float)(distancePtr),
 	}
 
 	res := C.emd(sign1, sign2, distance, nil, nil)
