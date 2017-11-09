@@ -1,4 +1,6 @@
 #include <iostream>
+#include <sstream>
+#include <stdio.h>
 #include "../fasttext/src/fasttext.h"
 
 const int RES_OK = 0;
@@ -7,16 +9,30 @@ const int RES_ERROR_WRONG_MODEL = 2;
 const int RES_ERROR_NOT_INIT = 3;
 
 extern "C" {
-    struct WrapperVector {
-        fasttext::Vector *vector;
-    };
-
     struct WrapperDictionary {
         std::shared_ptr<const fasttext::Dictionary> dict;
     };
 
     struct WrapperFastText {
         fasttext::FastText *model;
+    };
+
+    struct WrapperVector {
+        fasttext::Vector *vector;
+    };
+
+    struct PredictRecord {
+        float       predict;
+        const char* word;
+    };
+
+    struct PredictResult {
+        PredictRecord* records;
+        const char*    err;
+
+        std::vector<PredictRecord> records_;
+        std::vector<std::string>   words_;
+        std::string    err_;
     };
 }
 
@@ -65,6 +81,35 @@ const int checkVectorsFile(const std::string& path, const int ndim) {
     return RES_OK;
 }
 
+void predictResultResize(struct PredictResult* result, size_t sz) {
+    result->records_.resize(sz);
+    result->words_.resize(sz);
+}
+
+void predictResultSet(struct PredictResult* result, size_t i, std::pair<float, std::string>& rec) {
+    auto& new_rec = result->records_[i];
+    auto& new_word = result->words_[i];
+
+    new_rec.predict = std::get<0>(rec);
+    new_word = std::get<1>(rec);
+}
+
+void predictResultSetError(struct PredictResult* result, const char* str) {
+    result->err_ = std::string(str);
+    result->err = result->err_.c_str();
+}
+
+void predictResultFinish(struct PredictResult* result) {
+    auto& records = result->records_;
+    auto& words = result->words_;
+
+    for(size_t i = 0, sz = records.size(); i < sz; i++) {
+        records[i].word = words[i].c_str();
+    }
+
+    result->records = records.data();
+}
+
 struct WrapperVector* Vector(int ndim) {
     WrapperVector *wrapper = (WrapperVector *)malloc(sizeof (struct WrapperVector));
 
@@ -82,7 +127,7 @@ struct WrapperDictionary* Dictionary(std::shared_ptr<const fasttext::Dictionary>
 }
 
 extern "C" {
-    int DICT_Find(struct WrapperDictionary* wrapper, const char* word) {
+    const int DICT_Find(struct WrapperDictionary* wrapper, const char* word) {
         return int(wrapper->dict->getId(word));
     }
 
@@ -90,14 +135,8 @@ extern "C" {
         return wrapper->dict->getWord(id).c_str();
     }
 
-    int DICT_WordsCount(struct WrapperDictionary* wrapper) {
+    const int DICT_WordsCount(struct WrapperDictionary* wrapper) {
         return wrapper->dict->nwords();
-    }
-
-    void DICT_Release(struct WrapperDictionary* wrapper) {
-        wrapper->dict.reset();
-
-        free(wrapper);
     }
 
     void VEC_Release(struct WrapperVector* wrapper) {
@@ -106,12 +145,28 @@ extern "C" {
         free(wrapper);
     }
 
-    int VEC_Size(struct WrapperVector* wrapper) {
+    const int VEC_Size(struct WrapperVector* wrapper) {
         return wrapper->vector->size();
     }
 
-    float* VEC_GetData(struct WrapperVector* wrapper) {
+    const float* VEC_GetData(struct WrapperVector* wrapper) {
         return wrapper->vector->data_;
+    }
+
+    const int PRDCT_Len(struct PredictResult* result) {
+        return result->records_.size();
+    }
+
+    struct PredictRecord* PRDCT_Records(struct PredictResult* result) {
+        return result->records;
+    }
+
+    const char* PRDCT_Error(struct PredictResult* result) {
+        return result->err;
+    }
+
+    void PRDCT_Release(struct PredictResult* result) {
+        delete result;
     }
 
     struct WrapperFastText* FastText() {
@@ -164,9 +219,31 @@ extern "C" {
     struct WrapperVector* FT_GetVector(struct WrapperFastText* wrapper, const char* word) {
         struct WrapperVector* wrap_vector = Vector(wrapper->model->getDimension());
 
-        wrapper->model->getVector(*wrap_vector->vector, word);
+        wrapper->model->getWordVector(*wrap_vector->vector, word);
 
         return wrap_vector;
+    }
+
+    struct PredictResult* FT_Predict(struct WrapperFastText* wrapper, const char* text, int k) {
+        std::istringstream str(text);
+        std::vector<std::pair<float, std::string>> prediction;
+
+        struct PredictResult* result = new struct PredictResult();
+
+        try {
+            wrapper->model->predict(str, k, prediction);
+
+            predictResultResize(result, prediction.size());
+            for(size_t i = 0, sz = prediction.size(); i<sz; i++) {
+                predictResultSet(result, i, prediction[i]);
+            }
+
+            predictResultFinish(result);
+        } catch(std::exception &e) {
+            predictResultSetError(result, e.what());
+        }
+
+        return result;
     }
 
     void FT_Release(struct WrapperFastText* wrapper) {

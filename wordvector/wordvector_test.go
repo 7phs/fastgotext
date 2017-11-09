@@ -129,7 +129,7 @@ func TestWordVector_WordsDistance(t *testing.T) {
 		expected float32 = 4.02119385257662
 	)
 
-	if vector.F32Compare(exist, expected) != 0 {
+	if vector.F32Compare(exist, expected, vector.F32_EPS_DEFAULT) != 0 {
 		t.Error("failed to calc words distance. Result is ", exist, ", but expected is", expected)
 	}
 }
@@ -157,13 +157,13 @@ func TestWordVector_WMDistance(t *testing.T) {
 
 	if distance, err := model.WMDistance(docWord1, docWord2); err != nil {
 		t.Error("failed to check one word docs for calc WM distance. Got ", err)
-	} else if vector.F32Compare(distance, 1.) != 0 {
+	} else if vector.F32Compare(distance, 1., vector.F32_EPS_DEFAULT) != 0 {
 		t.Error("failed to calc wm distance. Result is", distance, ", but expected is", 1.)
 	}
 
 	if distance, err := model.WMDistance(doc1, doc2); err != nil {
 		t.Error("failed to calc WM distance. Gor error", err)
-	} else if vector.F32Compare(distance, expected) != 0 {
+	} else if vector.F32Compare(distance, expected, vector.F32_EPS_DEFAULT) != 0 {
 		t.Error("failed to calc wm distance. Result is", distance, ", but expected is", expected)
 	}
 }
@@ -212,13 +212,13 @@ func TestWordVector_Similarity(t *testing.T) {
 
 	if similarity, err := model.Similarity(doc1, doc2); err != nil {
 		t.Error("failed to calc similarity doc1 and doc2. Gor error", err)
-	} else if vector.F32Compare(similarity, expected1) != 0 {
+	} else if vector.F32Compare(similarity, expected1, vector.F32_EPS_DEFAULT) != 0 {
 		t.Error("failed to calc similarity doc1 and doc2. Result is", similarity, ", but expected is", expected1)
 	}
 
 	if similarity, err := model.Similarity(doc1, doc3); err != nil {
 		t.Error("failed to calc similarity doc1 and doc3. Gor error", err)
-	} else if vector.F32Compare(similarity, expected3) != 0 {
+	} else if vector.F32Compare(similarity, expected3, vector.F32_EPS_DEFAULT) != 0 {
 		t.Error("failed to calc similarity doc1 and doc3. Result is", similarity, ", but expected is", expected3)
 	}
 }

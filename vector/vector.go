@@ -1,7 +1,7 @@
 package vector
 
 const (
-	F32_EPS float64 = .0000001
+	F32_EPS_DEFAULT float64 = .0000001
 )
 
 func CastF32(vectors ...[]float32) []F32Vector {
@@ -15,9 +15,13 @@ func CastF32(vectors ...[]float32) []F32Vector {
 }
 
 func IsEqual(vec1, vec2 []float32) bool {
+	return IsEqualExt(vec1, vec2, F32_EPS_DEFAULT)
+}
+
+func IsEqualExt(vec1, vec2 []float32, precision float64) bool {
 	F32vecs := CastF32(vec1, vec2)
 
-	return IsF32Equal(F32vecs[0], F32vecs[1])
+	return IsF32EqualExt(F32vecs[0], F32vecs[1], precision)
 }
 
 func Mean(vectors ...[]float32) ([]float32, error) {

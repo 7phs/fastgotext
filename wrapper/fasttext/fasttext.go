@@ -4,34 +4,47 @@ package fasttext
 //
 // #include <stdlib.h>
 //
-// struct WrapperFastText;
-// struct WrapperDicionary;
-// struct WrapperVector;
+// struct PredictRecord {
+//     float       predict;
+//     const char* word;
+// };
+//
 // struct WrapperFastText* FastText();
 // const int FT_LoadModel(struct WrapperFastText*, const char*);
 // const int FT_LoadVectors(struct WrapperFastText*, const char*);
 // struct WrapperDictionary* FT_GetDictionary(struct WrapperFastText*);
 // struct WrapperVector* FT_GetVector(struct WrapperFastText*, const char*);
+// struct PredictResult* FT_Predict(struct WrapperFastText*, const char*, int);
 // void FT_Release(struct WrapperFastText*);
-// int DICT_Find(struct WrapperDictionary*, const char*);
+// const int DICT_Find(struct WrapperDictionary*, const char*);
 // const char* DICT_GetWord(struct WrapperDictionary*, int);
-// int DICT_WordsCount(struct WrapperDictionary*);
-// void DICT_Release(struct WrapperDictionary*);
-// int VEC_Size(struct WrapperVector* wrapper);
-// float* VEC_GetData(struct WrapperVector* wrapper);
-// void VEC_Release(struct WrapperVector* wrapper);
+// const int DICT_WordsCount(struct WrapperDictionary*);
+// const int VEC_Size(struct WrapperVector*);
+// const float* VEC_GetData(struct WrapperVector*);
+// void VEC_Release(struct WrapperVector*);
+// const int PRDCT_Len(struct PredictResult*);
+// const char* PRDCT_Error(struct PredictResult*);
+// struct PredictRecord* PRDCT_Records(struct PredictResult* result);
+// void PRDCT_Release(struct PredictResult*);
 import "C"
 import (
 	"unsafe"
 
 	"bitbucket.org/7phs/fastgotext/vector"
+	"errors"
+	"strings"
 )
 
 const (
-	RES_OK                   ResFastText = 0
-	RES_ERROR_NOT_OPEN       ResFastText = 1
-	RES_ERROR_WRONG_MODEL    ResFastText = 2
-	RES_ERROR_MODEL_NOT_INIT ResFastText = 3
+	RES_OK ResFastText = iota
+	RES_ERROR_NOT_OPEN
+	RES_ERROR_WRONG_MODEL
+	RES_ERROR_MODEL_NOT_INIT
+	RES_ERROR_EXECUTION
+)
+
+const (
+	FASTTEXT_LABEL_PREFIX = "__label__"
 )
 
 type ResFastText int
@@ -53,6 +66,8 @@ func (v ResFastText) String() string {
 		return "wrong format"
 	case RES_ERROR_MODEL_NOT_INIT:
 		return "model wasn't init"
+	case RES_ERROR_EXECUTION:
+		return "execution error"
 	case RES_OK:
 		return "ok"
 	default:
@@ -81,6 +96,50 @@ func (w *dictionary) GetWord(id int) string {
 
 func (w *dictionary) WordsCount() int {
 	return int(C.DICT_WordsCount(w.wrapper))
+}
+
+type Predict struct {
+	Probability float32
+	Word        string
+}
+
+func ToPredic(rec *C.struct_PredictRecord) *Predict {
+	return &Predict{
+		Probability: float32(rec.predict),
+		Word:        strings.TrimPrefix(C.GoString(rec.word), FASTTEXT_LABEL_PREFIX),
+	}
+}
+
+type predictResult struct {
+	wrapper *C.struct_PredictResult
+}
+
+func (p *predictResult) Unmarshal() []*Predict {
+	var (
+		data    = C.PRDCT_Records(p.wrapper)
+		len     = int(C.PRDCT_Len(p.wrapper))
+		records = (*[1 << 30]C.struct_PredictRecord)(unsafe.Pointer(data))[:len:len]
+		result  = make([]*Predict, 0, len)
+	)
+
+	for _, rec := range records {
+		result = append(result, ToPredic(&rec))
+	}
+
+	return result
+}
+
+func (p *predictResult) HasError() error {
+	if err := C.PRDCT_Error(p.wrapper); err != nil {
+		return errors.New(C.GoString(err))
+	}
+
+	return nil
+}
+
+func (p *predictResult) Free() {
+	C.PRDCT_Release(p.wrapper)
+	p.wrapper = nil
 }
 
 type fastText struct {
@@ -121,6 +180,22 @@ func (w *fastText) WordToVector(word string) []float32 {
 	defer C.VEC_Release(vec)
 
 	return vector.UnmarshalF32(unsafe.Pointer(C.VEC_GetData(vec)), int(C.VEC_Size(vec)))
+}
+
+func (w *fastText) Predict(text string, count int) ([]*Predict, error) {
+	cText := C.CString(text)
+	defer C.free(unsafe.Pointer(cText))
+
+	predict := &predictResult{
+		wrapper: C.FT_Predict(w.wrapper, cText, C.int(count)),
+	}
+	defer predict.Free()
+
+	if err := predict.HasError(); err != nil {
+		return nil, err
+	}
+
+	return predict.Unmarshal(), nil
 }
 
 func (w *fastText) Free() {

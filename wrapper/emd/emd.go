@@ -5,63 +5,80 @@ package emd
 // #include "lib/src/emd.h"
 import "C"
 import (
-	"unsafe"
-
-	"bitbucket.org/7phs/fastgotext/wrapper/marshal"
+	"bitbucket.org/7phs/fastgotext/wrapper/native"
 )
 
-func bowToWordsWeights(docBow []float32) (C.int, unsafe.Pointer, unsafe.Pointer) {
+type signatureT struct {
+	wordsCount int
+	words      *native.IntArray
+	weights    *native.FloatArray
+	C          *C.signature_t
+}
+
+func NewSignatureT(docBow []float32) *signatureT {
+	return (&signatureT{
+		wordsCount: 0,
+		words:      native.NewIntArray(uint(len(docBow))),
+		weights:    native.NewFloatArray(uint(len(docBow))),
+	}).init(docBow)
+}
+
+func (o *signatureT) init(docBow []float32) *signatureT {
 	var (
-		words           = &marshal.IntArray{}
-		weights         = &marshal.FloatArray{}
-		wordCount C.int = 0
+		wordsSlice   = o.words.Slice()
+		weightsSlice = o.weights.Slice()
 	)
 
 	for wordIndex, wordWeight := range docBow {
 		if wordWeight > 0. {
-			words.Push(wordIndex)
-			weights.Push(wordWeight)
+			wordsSlice[o.wordsCount] = (native.Cint)(wordIndex)
+			weightsSlice[o.wordsCount] = (native.Cfloat)(wordWeight)
 
-			wordCount++
+			o.wordsCount++
 		}
 	}
 
-	return wordCount, words.Pointer(), weights.Pointer()
+	o.C = &C.signature_t{
+		n:        C.int(o.wordsCount),
+		Weights:  (*C.float)(o.weights.Pointer()),
+		Features: (*C.int)(o.words.Pointer()),
+	}
+
+	return o
 }
 
-func Emd(docBow1, docBow2 []float32, distanceMatrix [][]float32) float32 {
-	distanceMarshaled := (&marshal.FloatMatrix{}).Marshal(distanceMatrix)
+func (o *signatureT) Free() {
+	o.words.Free()
+}
 
+type distFeaturesT struct {
+	C *C.dist_features_t
+}
+
+func NewDistFeatureT(distanceMatrix *native.FloatMatrix) *distFeaturesT {
+	return &distFeaturesT{
+		C: &C.dist_features_t{
+			dim:            (C.uint)(distanceMatrix.LenRow()),
+			distanceMatrix: (*C.float)(distanceMatrix.Pointer()),
+		},
+	}
+}
+
+func dumbEmd(*C.signature_t, *C.signature_t, *C.dist_features_t) float32 {
+	return .0
+}
+
+func Emd(docBow1, docBow2 []float32, distanceMatrix *native.FloatMatrix) float32 {
 	var (
-		count1, words1, weights1 = bowToWordsWeights(docBow1)
-		count2, words2, weights2 = bowToWordsWeights(docBow2)
-		distanceLen              = uint(distanceMarshaled.RowLen())
-		distancePtr              = distanceMarshaled.Pointer()
+		signature1 = NewSignatureT(docBow1)
+		signature2 = NewSignatureT(docBow2)
+		distance   = NewDistFeatureT(distanceMatrix)
 	)
-	defer marshal.FreePointer(words1)
-	defer marshal.FreePointer(weights1)
-	defer marshal.FreePointer(words2)
-	defer marshal.FreePointer(weights2)
-	defer marshal.FreePointer(distancePtr)
+	defer signature1.Free()
+	defer signature2.Free()
 
-	sign1 := &C.signature_t{
-		n:        count1,
-		Weights:  (*C.float)(weights1),
-		Features: (*C.int)(words1),
-	}
-
-	sign2 := &C.signature_t{
-		n:        count2,
-		Weights:  (*C.float)(weights2),
-		Features: (*C.int)(words2),
-	}
-
-	distance := &C.dist_features_t{
-		dim:            (C.uint)(distanceLen),
-		distanceMatrix: (*C.float)(distancePtr),
-	}
-
-	res := C.emd(sign1, sign2, distance, nil, nil)
+	res := C.emd(signature1.C, signature2.C, distance.C, nil, nil)
+	//res := dumbEmd(signature1.C, signature2.C, distance.C)
 
 	return float32(res)
 }

@@ -7,11 +7,11 @@ import (
 	"unsafe"
 )
 
-func F32Compare(f1, f2 float32) int {
+func F32Compare(f1, f2 float32, precision float64) int {
 	res := f1 - f2
 
 	switch {
-	case math.Abs(float64(res)) < F32_EPS:
+	case math.Abs(float64(res)) < precision:
 		return 0
 	case res < 0:
 		return -1
@@ -32,17 +32,14 @@ func CopyF32(vec F32Vector) F32Vector {
 	return append(res, vec...)
 }
 
-func UnmarshalF32(ptr unsafe.Pointer, sz int) F32Vector {
+func UnmarshalF32(ptr unsafe.Pointer, count int) F32Vector {
 	var (
-		arrP    = uintptr(ptr)
-		floatSz = uintptr(C.sizeof_float)
-		i       uintptr
-		res     = make(F32Vector, 0, sz)
+		data = (*[1 << 30]C.float)(ptr)[:count:count]
+		res  = make(F32Vector, 0, count)
 	)
 
-	for i = 0; i < uintptr(sz); i++ {
-		value := unsafe.Pointer(arrP + i*floatSz)
-		res = append(res, float32(*(*C.float)(value)))
+	for _, v := range data {
+		res = append(res, float32(v))
 	}
 
 	return res
@@ -132,12 +129,16 @@ func (v *F32Vector) Normalize(normalizer float32) {
 }
 
 func IsF32Equal(vec1, vec2 F32Vector) bool {
+	return IsF32EqualExt(vec1, vec2, F32_EPS_DEFAULT)
+}
+
+func IsF32EqualExt(vec1, vec2 F32Vector, precision float64) bool {
 	if vec1.Len() != vec2.Len() {
 		return false
 	}
 
 	for i := 0; i < vec1.Len(); i++ {
-		if F32Compare(vec1[i], vec2[i]) != 0 {
+		if F32Compare(vec1[i], vec2[i], precision) != 0 {
 			return false
 		}
 	}
