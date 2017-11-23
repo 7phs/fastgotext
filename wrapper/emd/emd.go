@@ -8,6 +8,11 @@ import (
 	"bitbucket.org/7phs/fastgotext/wrapper/native"
 )
 
+var (
+	iPool = native.NewIntPoolManager()
+	fPool = native.NewFloatPoolManager()
+)
+
 type signatureT struct {
 	wordsCount int
 	words      *native.IntArray
@@ -18,8 +23,8 @@ type signatureT struct {
 func NewSignatureT(docBow []float32) *signatureT {
 	return (&signatureT{
 		wordsCount: 0,
-		words:      native.NewIntArray(uint(len(docBow))),
-		weights:    native.NewFloatArray(uint(len(docBow))),
+		words:      iPool.Get(uint(len(docBow))),
+		weights:    fPool.Get(uint(len(docBow))),
 	}).init(docBow)
 }
 
@@ -48,7 +53,8 @@ func (o *signatureT) init(docBow []float32) *signatureT {
 }
 
 func (o *signatureT) Free() {
-	o.words.Free()
+	o.words.Put()
+	o.weights.Put()
 }
 
 type distFeaturesT struct {
@@ -64,10 +70,6 @@ func NewDistFeatureT(distanceMatrix *native.FloatMatrix) *distFeaturesT {
 	}
 }
 
-func dumbEmd(*C.signature_t, *C.signature_t, *C.dist_features_t) float32 {
-	return .0
-}
-
 func Emd(docBow1, docBow2 []float32, distanceMatrix *native.FloatMatrix) float32 {
 	var (
 		signature1 = NewSignatureT(docBow1)
@@ -78,7 +80,7 @@ func Emd(docBow1, docBow2 []float32, distanceMatrix *native.FloatMatrix) float32
 	defer signature2.Free()
 
 	res := C.emd(signature1.C, signature2.C, distance.C, nil, nil)
-	//res := dumbEmd(signature1.C, signature2.C, distance.C)
+	// res := C.emd_dumb(signature1.C, signature2.C, distance.C, nil, nil)
 
 	return float32(res)
 }

@@ -21,6 +21,8 @@ func ToCfloat(v float32) C.float {
 type IntArray struct {
 	data *C.int
 	len  uint
+
+	pool *intPool
 }
 
 func ToIntArray(data []int) *IntArray {
@@ -35,9 +37,14 @@ func ToIntArray(data []int) *IntArray {
 }
 
 func NewIntArray(ln uint) *IntArray {
+	return NewIntArrayExt(ln, nil)
+}
+
+func NewIntArrayExt(ln uint, pool *intPool) *IntArray {
 	return &IntArray{
 		data: (*C.int)(C.malloc_int(C.ulong(ln))),
 		len:  ln,
+		pool: pool,
 	}
 }
 
@@ -67,6 +74,18 @@ func (o *IntArray) Marshal() []int {
 	return res
 }
 
+func (o *IntArray) Clear() *IntArray {
+	C.clear_int(o.data, C.ulong(o.len))
+
+	return o
+}
+
+func (o *IntArray) Put() {
+	if o.pool != nil {
+		o.pool.Put(o)
+	}
+}
+
 func (o *IntArray) Free() {
 	C.free_(unsafe.Pointer(o.data))
 
@@ -77,6 +96,8 @@ func (o *IntArray) Free() {
 type FloatArray struct {
 	data *C.float
 	len  uint
+
+	pool *floatPool
 }
 
 func ToFloatArray(data []float32) *FloatArray {
@@ -91,9 +112,14 @@ func ToFloatArray(data []float32) *FloatArray {
 }
 
 func NewFloatArray(ln uint) *FloatArray {
+	return NewFloatArrayExt(ln, nil)
+}
+
+func NewFloatArrayExt(ln uint, pool *floatPool) *FloatArray {
 	return &FloatArray{
 		data: (*C.float)(C.malloc_float(C.ulong(ln))),
 		len:  ln,
+		pool: pool,
 	}
 }
 
@@ -121,6 +147,18 @@ func (o *FloatArray) Marshal() []float32 {
 	}
 
 	return res
+}
+
+func (o *FloatArray) Clear() *FloatArray {
+	C.clear_float(o.data, C.ulong(o.len))
+
+	return o
+}
+
+func (o *FloatArray) Put() {
+	if o.pool != nil {
+		o.pool.Put(o)
+	}
 }
 
 func (o *FloatArray) Free() {

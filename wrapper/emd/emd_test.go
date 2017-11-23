@@ -1,10 +1,11 @@
 package emd
 
 import (
-	"bitbucket.org/7phs/fastgotext/wrapper/native"
 	"fmt"
 	"math/rand"
 	"testing"
+
+	"bitbucket.org/7phs/fastgotext/wrapper/native"
 )
 
 func TestEmd(t *testing.T) {
@@ -25,7 +26,7 @@ func TestEmd(t *testing.T) {
 
 	exist := Emd(docBow1, docBow2, distanceMarshaled)
 	expected := float32(12.604165)
-	//expected := float32(.0)
+	// expected := float32(0.5)
 
 	if exist != expected {
 		t.Error("failed to calc emd. Got", exist, ", but expected is", expected)

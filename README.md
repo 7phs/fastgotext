@@ -81,43 +81,31 @@ ok      bitbucket.org/7phs/fastgotext/wrapper/emd       17.083s
 Test with native array.
 
 ```
-iMac-Aleksej:emd alexey$ go test -bench=.
-goos: darwin
-goarch: amd64
-pkg: bitbucket.org/7phs/fastgotext/wrapper/emd
-BenchmarkEmd/Emd/10-8         	  300000	      4415 ns/op
-BenchmarkEmd/Emd/20-8         	  100000	     12255 ns/op
-BenchmarkEmd/Emd/30-8         	   30000	     56780 ns/op
-BenchmarkEmd/Emd/40-8         	   20000	    107949 ns/op
-BenchmarkEmd/Emd/50-8         	   10000	    207291 ns/op
-BenchmarkEmd/Emd/60-8         	   10000	    499117 ns/op
-BenchmarkEmd/Emd/70-8         	    5000	    207729 ns/op
-BenchmarkEmd/Emd/80-8         	    3000	    446540 ns/op
-BenchmarkEmd/Emd/90-8         	    3000	    584416 ns/op
-BenchmarkEmd/Emd/100-8        	    2000	    880849 ns/op
-PASS
-ok  	bitbucket.org/7phs/fastgotext/wrapper/emd	23.170s
+BenchmarkEmd/Emd/10-8         	  300000	      3866 ns/op
+BenchmarkEmd/Emd/20-8         	  100000	     11055 ns/op
+BenchmarkEmd/Emd/30-8         	   50000	     57162 ns/op
+BenchmarkEmd/Emd/40-8         	   20000	     88536 ns/op
+BenchmarkEmd/Emd/50-8         	   10000	    106245 ns/op
+BenchmarkEmd/Emd/60-8         	   10000	    272815 ns/op
+BenchmarkEmd/Emd/70-8         	    3000	    577812 ns/op
+BenchmarkEmd/Emd/80-8         	    3000	    536653 ns/op
+BenchmarkEmd/Emd/90-8         	    2000	    658748 ns/op
+BenchmarkEmd/Emd/100-8        	    2000	    681481 ns/op
 ```
 
 Tes as just native marshaling.
 
 ```
-iMac-Aleksej:emd alexey$ go test -bench=.
-goos: darwin
-goarch: amd64
-pkg: bitbucket.org/7phs/fastgotext/wrapper/emd
-BenchmarkEmd/Emd/10-8         	 1000000	      1987 ns/op
-BenchmarkEmd/Emd/20-8         	  500000	      2934 ns/op
-BenchmarkEmd/Emd/30-8         	  500000	      4021 ns/op
-BenchmarkEmd/Emd/40-8         	  300000	      5109 ns/op
-BenchmarkEmd/Emd/50-8         	  200000	      6824 ns/op
-BenchmarkEmd/Emd/60-8         	  200000	      8799 ns/op
-BenchmarkEmd/Emd/70-8         	  100000	     11699 ns/op
-BenchmarkEmd/Emd/80-8         	   20000	     58520 ns/op
-BenchmarkEmd/Emd/90-8         	   20000	     60715 ns/op
-BenchmarkEmd/Emd/100-8        	   20000	     88310 ns/op
-PASS
-ok  	bitbucket.org/7phs/fastgotext/wrapper/emd	19.393s
+BenchmarkEmd/Emd/10-8         	 1000000	      1429 ns/op
+BenchmarkEmd/Emd/20-8         	 1000000	      1435 ns/op
+BenchmarkEmd/Emd/30-8         	 1000000	      1485 ns/op
+BenchmarkEmd/Emd/40-8         	 1000000	      1539 ns/op
+BenchmarkEmd/Emd/50-8         	 1000000	      1573 ns/op
+BenchmarkEmd/Emd/60-8         	 1000000	      1586 ns/op
+BenchmarkEmd/Emd/70-8         	 1000000	      1611 ns/op
+BenchmarkEmd/Emd/80-8         	 1000000	      1654 ns/op
+BenchmarkEmd/Emd/90-8         	 1000000	      1694 ns/op
+BenchmarkEmd/Emd/100-8        	 1000000	      1743 ns/op
 ```
 
 Fasttext links:

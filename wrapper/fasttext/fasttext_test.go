@@ -1,11 +1,13 @@
 package fasttext
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
-	"bitbucket.org/7phs/fastgotext/vector"
 	"reflect"
+
+	"bitbucket.org/7phs/fastgotext/vector"
 )
 
 const (
@@ -115,6 +117,33 @@ func TestFastText_GetDictionary(t *testing.T) {
 		if existWord := dict.GetWord(wordIndex); strings.Compare(word, existWord) != 0 {
 			t.Error("failed to find exist word by index ", wordIndex, ". Got '", existWord, "', but expected is '", 1, "'")
 		}
+	}
+}
+
+func TestFastText_GetDictionary2(t *testing.T) {
+	model := FastText()
+	if model == nil {
+		t.Error("failed to create fast text vector")
+		return
+	}
+	defer model.Free()
+
+	if err := model.LoadModel("/Volumes/7phs/Users/alexey/Projects/rust/fasttext-rs/test-data/unsupervised_model.bin"); err != nil {
+		t.Error("failed to load fasttext model:", err)
+		return
+	}
+
+	if err := model.LoadVectors("/Volumes/7phs/Users/alexey/Projects/rust/fasttext-rs/test-data/unsupervised_model.vec"); err != nil {
+		t.Error("failed to load fasttext vector:", err)
+		return
+	}
+
+	dict := model.GetDictionary()
+
+	fmt.Println(dict.WordsCount())
+
+	for i := 0; i < dict.WordsCount(); i++ {
+		fmt.Println(i, "-", dict.GetWord(i))
 	}
 }
 
