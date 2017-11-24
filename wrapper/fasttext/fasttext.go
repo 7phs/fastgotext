@@ -28,11 +28,12 @@ package fasttext
 // void PRDCT_Release(struct PredictResult*);
 import "C"
 import (
+	"errors"
+	"fmt"
+	"strings"
 	"unsafe"
 
 	"bitbucket.org/7phs/fastgotext/vector"
-	"errors"
-	"strings"
 )
 
 const (
@@ -101,6 +102,10 @@ func (w *dictionary) WordsCount() int {
 type Predict struct {
 	Probability float32
 	Word        string
+}
+
+func (o *Predict) String() string {
+	return fmt.Sprint("word: '", o.Word, "'; probability: ", o.Probability)
 }
 
 func ToPredic(rec *C.struct_PredictRecord) *Predict {

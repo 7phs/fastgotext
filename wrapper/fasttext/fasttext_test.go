@@ -5,8 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"reflect"
-
 	"bitbucket.org/7phs/fastgotext/vector"
 )
 
@@ -230,8 +228,8 @@ func TestFastText_PredictSupervised(t *testing.T) {
 
 	// TODO: check result
 	expected := []*Predict{
-		{Probability: -1.1025261, Word: "пожелание"},
 		{Probability: -1.1025261, Word: "вопрос"},
+		{Probability: -1.1025261, Word: "пожелание"},
 		{Probability: -1.1025261, Word: "приветствие"},
 	}
 
@@ -240,7 +238,18 @@ func TestFastText_PredictSupervised(t *testing.T) {
 		t.Error("failed to make a prediction with error", err)
 	}
 
-	if !reflect.DeepEqual(result, expected) {
-		t.Error("failed to make a prediction. Got", result, ", but expected is", expected)
+	exist := make(map[string]bool)
+	for _, predict := range result {
+		for _, expected_result := range expected {
+			if strings.Compare(predict.Word, expected_result.Word) == 0 {
+				exist[predict.Word] = true
+
+				break
+			}
+		}
+	}
+
+	if len(exist) != len(expected) {
+		t.Error("failed to make a prediction. Got \n", result, "\n, but expected is\n", expected)
 	}
 }
