@@ -3,5 +3,5 @@
 package emd
 
 var (
-	emd_wrapper = emd_calc
+	emdWrapper emdFunc = emdCalc
 )

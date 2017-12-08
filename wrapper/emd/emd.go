@@ -11,5 +11,5 @@ func Emd(docBow1, docBow2 []float32, distanceMatrix *native.FloatMatrix) float32
 	defer signature1.free()
 	defer signature2.free()
 
-	return float32(emd_wrapper(signature1, signature2, distance))
+	return float32(emdWrapper(signature1, signature2, distance))
 }

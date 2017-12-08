@@ -5,12 +5,20 @@ package emd
 // #include "lib/src/emd.h"
 import "C"
 import (
-	"bitbucket.org/7phs/fastgotext/wrapper/native"
+	"bitbucket.org/7phs/native"
 )
 
 var (
-	iPool = native.NewIntPoolManager()
-	fPool = native.NewFloatPoolManager()
+	pool = native.NewPoolManager()
+
+	intKey = &native.PoolId {
+		Kind: 1,
+		ItemSize: C.sizeof_int,
+		New: func(pool *native.Pool) native.PoolData {
+			return array.NewIntArrayExt(, pool)
+		}
+	}
+	floatKey =
 )
 
 type signatureT struct {
@@ -23,8 +31,8 @@ type signatureT struct {
 func newSignatureT(docBow []float32) *signatureT {
 	return (&signatureT{
 		wordsCount: 0,
-		words:      iPool.Get(uint(len(docBow))),
-		weights:    fPool.Get(uint(len(docBow))),
+		words:      pool.Get(uint(len(docBow))),
+		weights:    pool.Get(uint(len(docBow))),
 	}).init(docBow)
 }
 
@@ -70,10 +78,12 @@ func newDistFeatureT(distanceMatrix *native.FloatMatrix) *distFeaturesT {
 	}
 }
 
-func emd_calc(signature1, signature2 *signatureT, distance *distFeaturesT) float32 {
+type emdFunc func(*signatureT, *signatureT, *distFeaturesT) float32
+
+func emdCalc(signature1, signature2 *signatureT, distance *distFeaturesT) float32 {
 	return float32(C.emd(signature1.C, signature2.C, distance.C, nil, nil))
 }
 
-func emd_dumb(signature1, signature2 *signatureT, distance *distFeaturesT) float32 {
+func emdDumb(signature1, signature2 *signatureT, distance *distFeaturesT) float32 {
 	return float32(C.emd_dumb(signature1.C, signature2.C, distance.C, nil, nil))
 }

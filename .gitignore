@@ -6,3 +6,5 @@ _obj
 *.a
 *.lock
 .DS_Store
+gotemplate_*.go
+*.test
