@@ -1,8 +1,8 @@
 package emd
 
-import "bitbucket.org/7phs/fastgotext/wrapper/native"
+import "bitbucket.org/7phs/fastgotext/wrapper/array"
 
-func Emd(docBow1, docBow2 []float32, distanceMatrix *native.FloatMatrix) float32 {
+func Emd(docBow1, docBow2 []float32, distanceMatrix *array.FloatMatrix) float32 {
 	var (
 		signature1 = newSignatureT(docBow1)
 		signature2 = newSignatureT(docBow2)

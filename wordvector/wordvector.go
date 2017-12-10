@@ -5,8 +5,12 @@ import (
 	"os"
 
 	"bitbucket.org/7phs/fastgotext/vector"
+	"bitbucket.org/7phs/fastgotext/wrapper/array"
 	"bitbucket.org/7phs/fastgotext/wrapper/emd"
-	"bitbucket.org/7phs/fastgotext/wrapper/native"
+)
+
+var (
+	mfPool = array.NewFloatMatrixPool()
 )
 
 type WordVectorDictionary interface {
@@ -76,7 +80,7 @@ func (w *wordVector) WMDistance(doc1, doc2 []string) (float32, error) {
 		return 1., nil
 	}
 
-	distanceMatrix := native.NewFloatMatrix(uint(dict.Len()), uint(dict.Len()))
+	distanceMatrix := mfPool.Get(uint(dict.Len()), uint(dict.Len()))
 	defer distanceMatrix.Free()
 
 	data := distanceMatrix.Slice()
@@ -84,7 +88,7 @@ func (w *wordVector) WMDistance(doc1, doc2 []string) (float32, error) {
 	for i, word1 := range dict {
 		for j, word2 := range dict {
 			if dict1.WordIndex(word1) >= 0 && dict2.WordIndex(word2) >= 0 {
-				data[i][j] = native.Cfloat(w.WordsDistance(word1, word2))
+				data[i][j] = array.FloatMatrixRec(w.WordsDistance(word1, word2))
 			}
 		}
 	}

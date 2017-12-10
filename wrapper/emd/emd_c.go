@@ -5,34 +5,26 @@ package emd
 // #include "lib/src/emd.h"
 import "C"
 import (
-	"bitbucket.org/7phs/native"
+	"bitbucket.org/7phs/fastgotext/wrapper/array"
 )
 
 var (
-	pool = native.NewPoolManager()
-
-	intKey = &native.PoolId {
-		Kind: 1,
-		ItemSize: C.sizeof_int,
-		New: func(pool *native.Pool) native.PoolData {
-			return array.NewIntArrayExt(, pool)
-		}
-	}
-	floatKey =
+	iPool = array.NewIntArrayPool()
+	fPool = array.NewFloatArrayPool()
 )
 
 type signatureT struct {
 	wordsCount int
-	words      *native.IntArray
-	weights    *native.FloatArray
+	words      *array.IntArray
+	weights    *array.FloatArray
 	C          *C.signature_t
 }
 
 func newSignatureT(docBow []float32) *signatureT {
 	return (&signatureT{
 		wordsCount: 0,
-		words:      pool.Get(uint(len(docBow))),
-		weights:    pool.Get(uint(len(docBow))),
+		words:      iPool.Get(uint(len(docBow))),
+		weights:    fPool.Get(uint(len(docBow))),
 	}).init(docBow)
 }
 
@@ -44,8 +36,8 @@ func (o *signatureT) init(docBow []float32) *signatureT {
 
 	for wordIndex, wordWeight := range docBow {
 		if wordWeight > 0. {
-			wordsSlice[o.wordsCount] = (native.Cint)(wordIndex)
-			weightsSlice[o.wordsCount] = (native.Cfloat)(wordWeight)
+			wordsSlice[o.wordsCount] = array.IntArrayRec(wordIndex)
+			weightsSlice[o.wordsCount] = array.FloatArrayRec(wordWeight)
 
 			o.wordsCount++
 		}
@@ -61,18 +53,18 @@ func (o *signatureT) init(docBow []float32) *signatureT {
 }
 
 func (o *signatureT) free() {
-	o.words.Put()
-	o.weights.Put()
+	o.words.Free()
+	o.weights.Free()
 }
 
 type distFeaturesT struct {
 	C *C.dist_features_t
 }
 
-func newDistFeatureT(distanceMatrix *native.FloatMatrix) *distFeaturesT {
+func newDistFeatureT(distanceMatrix *array.FloatMatrix) *distFeaturesT {
 	return &distFeaturesT{
 		C: &C.dist_features_t{
-			dim:            (C.uint)(distanceMatrix.LenRow()),
+			dim:            (C.uint)(distanceMatrix.Dim()[0]),
 			distanceMatrix: (*C.float)(distanceMatrix.Pointer()),
 		},
 	}

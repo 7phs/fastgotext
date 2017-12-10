@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"bitbucket.org/7phs/fastgotext/wrapper/native"
+	"bitbucket.org/7phs/fastgotext/wrapper/array"
 )
 
 func randomFloat32(probability, max float32) float32 {
@@ -48,7 +48,7 @@ func BenchmarkEmd(b *testing.B) {
 				}
 			}
 
-			distanceMatrix := native.ToFloatMatrix(distance)
+			distanceMatrix := array.WithFloatMatrix(distance)
 			defer distanceMatrix.Free()
 
 			b.ResetTimer()

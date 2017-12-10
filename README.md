@@ -3,7 +3,7 @@
 First - init and update submodule.
 
 ```
-git submodule update --init
+git submodule update --init --recursive
 
 git submodule foreach git pull
 ```

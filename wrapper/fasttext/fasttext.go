@@ -80,23 +80,27 @@ func (v ResFastText) Error() string {
 	return v.String()
 }
 
-type dictionary struct {
-	wrapper *C.struct_WrapperDictionary
+type Dictionary interface {
+	Find(word string) int
+	GetWord(id int) string
+	WordsCount() int
 }
 
-func (w *dictionary) Find(word string) int {
+type dictionary = C.struct_WrapperDictionary
+
+func (o *dictionary) Find(word string) int {
 	cWord := C.CString(word)
 	defer C.free(unsafe.Pointer(cWord))
 
-	return int(C.DICT_Find(w.wrapper, cWord))
+	return int(C.DICT_Find(o, cWord))
 }
 
-func (w *dictionary) GetWord(id int) string {
-	return C.GoString(C.DICT_GetWord(w.wrapper, C.int(id)))
+func (o *dictionary) GetWord(id int) string {
+	return C.GoString(C.DICT_GetWord(o, C.int(id)))
 }
 
-func (w *dictionary) WordsCount() int {
-	return int(C.DICT_WordsCount(w.wrapper))
+func (o *dictionary) WordsCount() int {
+	return int(C.DICT_WordsCount(o))
 }
 
 type Predict struct {
@@ -115,14 +119,12 @@ func ToPredic(rec *C.struct_PredictRecord) *Predict {
 	}
 }
 
-type predictResult struct {
-	wrapper *C.struct_PredictResult
-}
+type predictResult = C.struct_PredictResult
 
-func (p *predictResult) Unmarshal() []*Predict {
+func (o *predictResult) Unmarshal() []*Predict {
 	var (
-		data    = C.PRDCT_Records(p.wrapper)
-		len     = int(C.PRDCT_Len(p.wrapper))
+		data    = C.PRDCT_Records(o)
+		len     = int(C.PRDCT_Len(o))
 		records = (*[1 << 30]C.struct_PredictRecord)(unsafe.Pointer(data))[:len:len]
 		result  = make([]*Predict, 0, len)
 	)
@@ -134,66 +136,66 @@ func (p *predictResult) Unmarshal() []*Predict {
 	return result
 }
 
-func (p *predictResult) HasError() error {
-	if err := C.PRDCT_Error(p.wrapper); err != nil {
+func (o *predictResult) HasError() error {
+	if err := C.PRDCT_Error(o); err != nil {
 		return errors.New(C.GoString(err))
 	}
 
 	return nil
 }
 
-func (p *predictResult) Free() {
-	C.PRDCT_Release(p.wrapper)
-	p.wrapper = nil
+func (o *predictResult) Free() {
+	C.PRDCT_Release(o)
 }
 
-type fastText struct {
-	wrapper *C.struct_WrapperFastText
+type FastText interface {
+	LoadModel(modelPath string) error
+	LoadVectors(vectorsPath string) error
+	GetDictionary() Dictionary
+	WordToVector(word string) []float32
+	Predict(text string, count int) ([]*Predict, error)
+	Free()
 }
 
-func FastText() *fastText {
-	return &fastText{
-		wrapper: C.FastText(),
-	}
+type fastText = C.struct_WrapperFastText
+
+func NewFastText() FastText {
+	return C.FastText()
 }
 
-func (w *fastText) LoadModel(modelPath string) error {
+func (o *fastText) LoadModel(modelPath string) error {
 	cModelPath := C.CString(modelPath)
 	defer C.free(unsafe.Pointer(cModelPath))
 
-	return CastResFastText(int(C.FT_LoadModel(w.wrapper, cModelPath)))
+	return CastResFastText(int(C.FT_LoadModel(o, cModelPath)))
 }
 
-func (w *fastText) LoadVectors(vectorsPath string) error {
+func (o *fastText) LoadVectors(vectorsPath string) error {
 	cVectorsPath := C.CString(vectorsPath)
 	defer C.free(unsafe.Pointer(cVectorsPath))
 
-	return CastResFastText(int(C.FT_LoadVectors(w.wrapper, cVectorsPath)))
+	return CastResFastText(int(C.FT_LoadVectors(o, cVectorsPath)))
 }
 
-func (w *fastText) GetDictionary() *dictionary {
-	return &dictionary{
-		wrapper: C.FT_GetDictionary(w.wrapper),
-	}
+func (o *fastText) GetDictionary() Dictionary {
+	return C.FT_GetDictionary(o)
 }
 
-func (w *fastText) WordToVector(word string) []float32 {
+func (o *fastText) WordToVector(word string) []float32 {
 	cWord := C.CString(word)
 	defer C.free(unsafe.Pointer(cWord))
 
-	vec := C.FT_GetVector(w.wrapper, cWord)
+	vec := C.FT_GetVector(o, cWord)
 	defer C.VEC_Release(vec)
 
 	return vector.UnmarshalF32(unsafe.Pointer(C.VEC_GetData(vec)), int(C.VEC_Size(vec)))
 }
 
-func (w *fastText) Predict(text string, count int) ([]*Predict, error) {
+func (o *fastText) Predict(text string, count int) ([]*Predict, error) {
 	cText := C.CString(text)
 	defer C.free(unsafe.Pointer(cText))
 
-	predict := &predictResult{
-		wrapper: C.FT_Predict(w.wrapper, cText, C.int(count)),
-	}
+	predict := C.FT_Predict(o, cText, C.int(count))
 	defer predict.Free()
 
 	if err := predict.HasError(); err != nil {
@@ -203,7 +205,6 @@ func (w *fastText) Predict(text string, count int) ([]*Predict, error) {
 	return predict.Unmarshal(), nil
 }
 
-func (w *fastText) Free() {
-	C.FT_Release(w.wrapper)
-	w.wrapper = nil
+func (o *fastText) Free() {
+	C.FT_Release(o)
 }

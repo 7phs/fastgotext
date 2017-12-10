@@ -1,7 +1,7 @@
 package vector
 
 import (
-	"bitbucket.org/7phs/fastgotext/wrapper/native"
+	"bitbucket.org/7phs/fastgotext/wrapper/array"
 	"math"
 	"testing"
 )
@@ -28,12 +28,12 @@ func TestF32Compare(t *testing.T) {
 func TestCFloatToF32(t *testing.T) {
 	var (
 		expected = []float32{.1, 2.3, 56.7}
-		arr      = native.ToFloatArray(expected)
+		arr      = array.WithFloatArray(expected)
 		src      = arr.Pointer()
 	)
 	defer arr.Free()
 
-	exist := UnmarshalF32(src, int(arr.Len()))
+	exist := UnmarshalF32(src, int(arr.Dim()[0]))
 
 	if !IsF32Equal(exist, F32Vector(expected)) {
 		t.Error("failed to convert from C.float array to []float32. Result is ", exist, ", but expected is ", expected)

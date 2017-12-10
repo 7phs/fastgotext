@@ -1,7 +1,6 @@
 package fasttext
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -39,7 +38,7 @@ func TestCastResFastText(t *testing.T) {
 }
 
 func TestFastText(t *testing.T) {
-	model := FastText()
+	model := NewFastText()
 	if model == nil {
 		t.Error("failed to create fasttext model")
 	} else {
@@ -48,7 +47,7 @@ func TestFastText(t *testing.T) {
 }
 
 func TestFastText_LoadModel(t *testing.T) {
-	model := FastText()
+	model := NewFastText()
 	if model == nil {
 		t.Error("failed to create fasttext model")
 		return
@@ -61,7 +60,7 @@ func TestFastText_LoadModel(t *testing.T) {
 }
 
 func TestFastText_LoadVector(t *testing.T) {
-	model := FastText()
+	model := NewFastText()
 	if model == nil {
 		t.Error("failed to create fast text vector")
 		return
@@ -82,7 +81,7 @@ func TestFastText_LoadVector(t *testing.T) {
 }
 
 func TestFastText_GetDictionary(t *testing.T) {
-	model := FastText()
+	model := NewFastText()
 	if model == nil {
 		t.Error("failed to create fast text vector")
 		return
@@ -118,35 +117,8 @@ func TestFastText_GetDictionary(t *testing.T) {
 	}
 }
 
-func TestFastText_GetDictionary2(t *testing.T) {
-	model := FastText()
-	if model == nil {
-		t.Error("failed to create fast text vector")
-		return
-	}
-	defer model.Free()
-
-	if err := model.LoadModel("/Volumes/7phs/Users/alexey/Projects/rust/fasttext-rs/test-data/unsupervised_model.bin"); err != nil {
-		t.Error("failed to load fasttext model:", err)
-		return
-	}
-
-	if err := model.LoadVectors("/Volumes/7phs/Users/alexey/Projects/rust/fasttext-rs/test-data/unsupervised_model.vec"); err != nil {
-		t.Error("failed to load fasttext vector:", err)
-		return
-	}
-
-	dict := model.GetDictionary()
-
-	fmt.Println(dict.WordsCount())
-
-	for i := 0; i < dict.WordsCount(); i++ {
-		fmt.Println(i, "-", dict.GetWord(i))
-	}
-}
-
 func TestFastText_WordToVector(t *testing.T) {
-	model := FastText()
+	model := NewFastText()
 	if model == nil {
 		t.Error("failed to create fast text vector")
 		return
@@ -185,7 +157,7 @@ func TestFastText_WordToVector(t *testing.T) {
 }
 
 func TestFastText_PredictUnsipervised(t *testing.T) {
-	model := FastText()
+	model := NewFastText()
 	if model == nil {
 		t.Error("failed to create fast text vector")
 		return
@@ -209,7 +181,7 @@ func TestFastText_PredictUnsipervised(t *testing.T) {
 }
 
 func TestFastText_PredictSupervised(t *testing.T) {
-	model := FastText()
+	model := NewFastText()
 	if model == nil {
 		t.Error("failed to create fast text vector")
 		return
