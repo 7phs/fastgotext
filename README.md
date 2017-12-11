@@ -81,31 +81,43 @@ ok      bitbucket.org/7phs/fastgotext/wrapper/emd       17.083s
 Test with native array.
 
 ```
-BenchmarkEmd/Emd/10-8         	  300000	      3866 ns/op
-BenchmarkEmd/Emd/20-8         	  100000	     11055 ns/op
-BenchmarkEmd/Emd/30-8         	   50000	     57162 ns/op
-BenchmarkEmd/Emd/40-8         	   20000	     88536 ns/op
-BenchmarkEmd/Emd/50-8         	   10000	    106245 ns/op
-BenchmarkEmd/Emd/60-8         	   10000	    272815 ns/op
-BenchmarkEmd/Emd/70-8         	    3000	    577812 ns/op
-BenchmarkEmd/Emd/80-8         	    3000	    536653 ns/op
-BenchmarkEmd/Emd/90-8         	    2000	    658748 ns/op
-BenchmarkEmd/Emd/100-8        	    2000	    681481 ns/op
+go test -bench=.
+goos: darwin
+goarch: amd64
+pkg: bitbucket.org/7phs/fastgotext/wrapper/emd
+BenchmarkEmd/Emd/10-8         	  300000	      3768 ns/op
+BenchmarkEmd/Emd/20-8         	  100000	     11023 ns/op
+BenchmarkEmd/Emd/30-8         	   50000	     57476 ns/op
+BenchmarkEmd/Emd/40-8         	   20000	     86323 ns/op
+BenchmarkEmd/Emd/50-8         	   10000	    105847 ns/op
+BenchmarkEmd/Emd/60-8         	   10000	    274646 ns/op
+BenchmarkEmd/Emd/70-8         	    3000	    575674 ns/op
+BenchmarkEmd/Emd/80-8         	    3000	    529006 ns/op
+BenchmarkEmd/Emd/90-8         	    2000	    657821 ns/op
+BenchmarkEmd/Emd/100-8        	    2000	    695739 ns/op
+PASS
+ok  	bitbucket.org/7phs/fastgotext/wrapper/emd	19.171s
 ```
 
 Tes as just native marshaling.
 
 ```
-BenchmarkEmd/Emd/10-8         	 1000000	      1429 ns/op
-BenchmarkEmd/Emd/20-8         	 1000000	      1435 ns/op
-BenchmarkEmd/Emd/30-8         	 1000000	      1485 ns/op
-BenchmarkEmd/Emd/40-8         	 1000000	      1539 ns/op
-BenchmarkEmd/Emd/50-8         	 1000000	      1573 ns/op
-BenchmarkEmd/Emd/60-8         	 1000000	      1586 ns/op
-BenchmarkEmd/Emd/70-8         	 1000000	      1611 ns/op
-BenchmarkEmd/Emd/80-8         	 1000000	      1654 ns/op
-BenchmarkEmd/Emd/90-8         	 1000000	      1694 ns/op
-BenchmarkEmd/Emd/100-8        	 1000000	      1743 ns/op
+go test -tags="dumb" -bench=.
+goos: darwin
+goarch: amd64
+pkg: bitbucket.org/7phs/fastgotext/wrapper/emd
+BenchmarkEmd/Emd/10-8         	 1000000	      1354 ns/op
+BenchmarkEmd/Emd/20-8         	 1000000	      1376 ns/op
+BenchmarkEmd/Emd/30-8         	 1000000	      1407 ns/op
+BenchmarkEmd/Emd/40-8         	 1000000	      1448 ns/op
+BenchmarkEmd/Emd/50-8         	 1000000	      1492 ns/op
+BenchmarkEmd/Emd/60-8         	 1000000	      1526 ns/op
+BenchmarkEmd/Emd/70-8         	 1000000	      1576 ns/op
+BenchmarkEmd/Emd/80-8         	 1000000	      1629 ns/op
+BenchmarkEmd/Emd/90-8         	 1000000	      1613 ns/op
+BenchmarkEmd/Emd/100-8        	 1000000	      1704 ns/op
+PASS
+ok  	bitbucket.org/7phs/fastgotext/wrapper/emd	15.308s
 ```
 
 Fasttext links:
