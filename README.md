@@ -1,3 +1,8 @@
+The Golang wrapper of FaceBook [Fasttext](https://github.com/facebookresearch/fastText)
+and [EMD idea and source code](http://ai.stanford.edu/%7Erubner/emd/default.htm).
+
+The primary purpose of the project is an experiment for a bridge between Golang and native.
+
 # Init submodule
 
 First - init and update submodule.
