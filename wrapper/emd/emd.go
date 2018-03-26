@@ -1,6 +1,6 @@
 package emd
 
-import "bitbucket.org/7phs/fastgotext/wrapper/array"
+import "github.com/7phs/fastgotext/wrapper/array"
 
 func Emd(docBow1, docBow2 []float32, distanceMatrix *array.FloatMatrix) float32 {
 	var (

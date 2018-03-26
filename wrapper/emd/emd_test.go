@@ -3,7 +3,7 @@ package emd
 import (
 	"testing"
 
-	"bitbucket.org/7phs/fastgotext/wrapper/array"
+	"github.com/7phs/fastgotext/wrapper/array"
 )
 
 func prepareData() (docBow1, docBow2 []float32, distanceMatrix *array.FloatMatrix) {

@@ -5,7 +5,7 @@ package emd
 // #include "lib/src/emd.h"
 import "C"
 import (
-	"bitbucket.org/7phs/fastgotext/wrapper/array"
+	"github.com/7phs/fastgotext/wrapper/array"
 )
 
 var (

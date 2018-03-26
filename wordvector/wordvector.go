@@ -4,9 +4,9 @@ import (
 	"math"
 	"os"
 
-	"bitbucket.org/7phs/fastgotext/vector"
-	"bitbucket.org/7phs/fastgotext/wrapper/array"
-	"bitbucket.org/7phs/fastgotext/wrapper/emd"
+	"github.com/7phs/fastgotext/vector"
+	"github.com/7phs/fastgotext/wrapper/array"
+	"github.com/7phs/fastgotext/wrapper/emd"
 )
 
 var (

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"bitbucket.org/7phs/fastgotext/vector"
+	"github.com/7phs/fastgotext/vector"
 )
 
 const (

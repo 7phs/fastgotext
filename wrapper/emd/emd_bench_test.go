@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"bitbucket.org/7phs/fastgotext/wrapper/array"
+	"github.com/7phs/fastgotext/wrapper/array"
 )
 
 func randomFloat32(probability, max float32) float32 {

@@ -1,9 +1,10 @@
 package vector
 
 import (
-	"bitbucket.org/7phs/fastgotext/wrapper/array"
 	"math"
 	"testing"
+
+	"github.com/7phs/fastgotext/wrapper/array"
 )
 
 func TestF32Compare(t *testing.T) {
